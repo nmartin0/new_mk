@@ -40,7 +40,7 @@ BEGIN {
 
 # Take an arbitrarily complex C symbol or expression and constantize it.
 /^expr/ {
-	print "asm (\"";
+	printf "asm (\"\\n";
 	if ($3 == "")
 		printf "* %s mAgIc%%0\" : : \"i\" (%s));\n", $2, $2;
 	else
@@ -49,14 +49,14 @@ BEGIN {
 
 # Output a symbol defining the size of a C structure.
 /^size/ {
-	print "asm (\"";
+	printf "asm (\"\\n";
 	printf "* %s_SIZE mAgIc%%0\" : : \"i\" (sizeof(struct %s)));\n",
 		toupper($3), $2;
 }
 
 # Output a symbol defining the byte offset of an element of a C structure.
 /^offset/ {
-	print "asm (\"";
+	printf "asm (\"\\n";
 	if ($5 == "")
 	{
 		printf "* %s_%s mAgIc%%0\" : : \"i\" (&((struct %s*)0)->%s));\n",
