@@ -1064,11 +1064,11 @@ run:
 		 */
 		SD(printf("%8x[%d]: psignalDIRECT %x[%d] %x\n",curproc,curproc->p_pid, p,p->p_pid, signum));
 		switch ((integer_t)p->p_sigacts->ps_sigact[signum]) {
-		      case SIG_IGN:
-		      case SIG_HOLD:
+		      case (integer_t)SIG_IGN:
+		      case (integer_t)SIG_HOLD:
 			break;
 
-		      case SIG_DFL:
+		      case (integer_t)SIG_DFL:
 			sig_default(p, signum);
 			break;
 
@@ -1167,7 +1167,7 @@ int issignal(p)
 		 */
 		switch ((integer_t)p->p_sigacts->ps_sigact[signum]) {
 
-		case SIG_DFL:
+		case (integer_t)SIG_DFL:
 			/*
 			 * Don't take default actions on system processes.
 			 */
@@ -1212,7 +1212,7 @@ int issignal(p)
 				return (signum);
 			/*NOTREACHED*/
 
-		case SIG_IGN:
+		case (integer_t)SIG_IGN:
 			/*
 			 * Masking above should prevent us ever trying
 			 * to take action on an ignored signal other

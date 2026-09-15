@@ -211,8 +211,19 @@ copyinstr(from, to, max_len, len_copied)
 	    cp = data + ((vm_offset_t)from - start);
 	    while (count < cur_max) {
 		count++;
-		if ((*((char *)to)++ = *cp++) == 0) {
-		    goto done;
+		/*
+		 * Was: if ((*((char *)to)++ = *cp++) == 0)
+		 * A cast is not an lvalue in modern C, so the
+		 * post-increment is spelled out. Semantics unchanged:
+		 * copy one byte, advance both pointers, stop at NUL.
+		 */
+		{
+		    char _c = *cp++;
+
+		    *(char *)to = _c;
+		    to = (char *)to + 1;
+		    if (_c == 0)
+			goto done;
 		}
 	    }
 	    (void) vm_deallocate(mach_task_self(),

@@ -184,7 +184,12 @@ struct vnodeop_desc vop_default_desc = {
 END_OF_LEADING_COMMENT
 
 # Awk script to take vnode_if.src and turn it into vnode_if.c.
-$AWK 'function kill_surrounding_ws (s) {
+$AWK 'function bail (msg) {
+		print "vnode_if.sh: " msg > "/dev/stderr";
+		exit 1;
+	}
+
+	function kill_surrounding_ws (s) {
 		sub (/^[ \t]*/, "", s);
 		sub (/[ \t]*$/, "", s);
 		return s;

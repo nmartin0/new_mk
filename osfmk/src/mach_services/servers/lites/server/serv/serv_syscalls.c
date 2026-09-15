@@ -540,14 +540,14 @@ boolean_t thread_signal(struct proc *p, thread_t thread, int sig, int code)
 	}
 
 	switch ((vm_offset_t)p->p_sigacts->ps_sigact[sig]) {
-	    case SIG_IGN:
-	    case SIG_HOLD:
+	    case (integer_t)SIG_IGN:
+	    case (integer_t)SIG_HOLD:
 		/*
 		 * Should not get here unless traced.
 		 */
 		break;
 
-	    case SIG_DFL:
+	    case (integer_t)SIG_DFL:
 		sig_default(p, sig);
 		break;
 
@@ -697,15 +697,15 @@ bsd_take_signal(
 	p->p_siglist &= ~sigmask(sig);
 	action = ps->ps_sigact[sig];
 	switch ((vm_offset_t)action) {
-	    case SIG_IGN:
-	    case SIG_HOLD:
+	    case (integer_t)SIG_IGN:
+	    case (integer_t)SIG_HOLD:
 		/*
 		 * Should not get here.
 		 */
 		sig = 0;
 		break;
 
-	    case SIG_DFL:
+	    case (integer_t)SIG_DFL:
 		/*
 		 * take default action
 		 */

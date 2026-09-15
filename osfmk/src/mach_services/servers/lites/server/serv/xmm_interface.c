@@ -106,9 +106,13 @@ kern_return_t seqnos_memory_object_notify (
 	/* move port from waiting set to ux server set */
 	ux_server_add_port(memory_object);
 
-	attributes.object_ready  = TRUE;
-	attributes.copy_strategy = pager->copy_strategy;
-	attributes.may_cache     = pager->may_cache;
+	/*
+	 * OSFMK 7.3's struct memory_object_attr_info is
+	 * copy_strategy, cluster_size, may_cache_object, temporary.
+	 * object_ready has no counterpart; may_cache was renamed.
+	 */
+	attributes.copy_strategy    = pager->copy_strategy;
+	attributes.may_cache_object = pager->may_cache;
 
 	kr = memory_object_establish(host_name,
 				     memory_object,

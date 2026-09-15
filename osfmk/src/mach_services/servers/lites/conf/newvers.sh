@@ -30,11 +30,11 @@ fi
 CONFIG=`expr "$d" : '.*/\([^/]*\)$'`
 d=`expr "$d" : '.*/\([^/]*/[^/]*\)$'`
 (
-  echo "char ostype[] = \"Lites\";" ;
-  echo "char osrelease[] = \"${version}\";" ;
-  echo "char version[] = \"${name} ${v}: ${t}; $config ($h)\\n\";" ;
-  echo "char version_short[] = \"${version} ${config}\\n\";" ;
-  echo "char cmu_copyright[] = \"\\" ;
+  printf "%s\n" "char ostype[] = \"Lites\";" ;
+  printf "%s\n" "char osrelease[] = \"${version}\";" ;
+  printf "%s\n" "char version[] = \"${name} ${v}: ${t}; $config ($h)\\n\";" ;
+  printf "%s\n" "char version_short[] = \"${version} ${config}\\n\";" ;
+  printf "%s\n" "char cmu_copyright[] = \"\\" ;
   sed <$copyright -e '/^#/d' -e 's;[ 	]*$;;' -e '/^$/d' -e 's;$;\\n\\;' -e 's/"/\\"/g';
   echo "\";";
 ) > vers.c
