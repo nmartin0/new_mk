@@ -75,6 +75,11 @@ extern __inline__ int test_bit(int nr, void * addr)
 extern inline int find_first_zero_bit(void * addr, unsigned size)
 {
 	int res;
+	/*
+	 * d0, d1, d2 exist only to declare ECX, EDI and EAX as
+	 * read-write operands; see the constraint note below.
+	 */
+	int d0, d1, d2;
 
 	if (!size)
 		return 0;
@@ -90,9 +95,26 @@ extern inline int find_first_zero_bit(void * addr, unsigned size)
 1:		subl %%ebx,%%edi\n\
 		shll $3,%%edi\n\
 		addl %%edi,%%edx"
-		:"=d" (res)
-		:"c" ((size + 31) >> 5), "D" (addr), "b" (addr)
-		:"ax", "cx", "di");
+		/*
+		 * The original constraints named ECX and EDI as inputs
+		 * ("c" and "D") *and* as clobbers ("cx", "di"). That is
+		 * invalid: a register cannot be clobbered when the
+		 * compiler must also set it up as an input, because the
+		 * value has to survive until the asm reads it. The block
+		 * really does modify both -- repe decrements ECX and
+		 * scasl advances EDI -- so they are read-write operands,
+		 * spelled as early-clobber outputs tied to matching
+		 * inputs. EAX is written by the movl and so is an output
+		 * too, rather than a clobber.
+		 *
+		 * Older GCC tolerated the original form. Modern GCC
+		 * rejects it at -O2 with "asm operand has impossible
+		 * constraints or there are not enough registers", while
+		 * accepting it at -O0, which is the signature of a
+		 * constraint bug rather than genuine register pressure.
+		 */
+		:"=d" (res), "=&c" (d0), "=&D" (d1), "=&a" (d2)
+		:"1" ((size + 31) >> 5), "2" (addr), "b" (addr));
 	return res;
 }
 
