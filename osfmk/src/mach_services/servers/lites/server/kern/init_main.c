@@ -359,8 +359,25 @@ noreturn system_setup()
 	/* Mount the root file system. */
 	kr = (*mountroot)();
 #if EXT2FS
-	/* XXX if FFS fails, fall back to EXT2FS */
-	if (kr == EINVAL) {
+	/*
+	 * XXX if FFS fails, fall back to EXT2FS
+	 *
+	 * EIO as well as EINVAL. ffs_mountfs() returns EIO when the
+	 * superblock magic is wrong -- ffs_vfsops.c marks that return
+	 * "XXX needs translation" -- so on a disk holding an ext2
+	 * filesystem the fallback was never reached and ext2_mountroot()
+	 * never ran. The symptom is a "cannot mount root" panic with no
+	 * ext2 diagnostic at all, even though ext2_vfsops.c would have
+	 * printed one had it been called.
+	 *
+	 * The same file is inconsistent about which errno means "this is
+	 * not my filesystem": ffs_vfsops.c:214 sets EINVAL with the same
+	 * "needs translation" comment, and :261 returns EINVAL outright.
+	 * Widening the test here rather than changing what FFS returns
+	 * keeps the policy in the caller, where it belongs, and leaves
+	 * FFS's behaviour alone for anything else that depends on it.
+	 */
+	if (kr == EINVAL || kr == EIO) {
 		extern int ext2_mountroot __P((void));
 
 		kr = ext2_mountroot();
