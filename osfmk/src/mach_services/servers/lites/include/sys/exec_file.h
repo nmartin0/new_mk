@@ -45,13 +45,23 @@ typedef enum binary_type {
     } binary_type_t;
 
 /* Names for the above (for @bin expansion) */
+/*
+ * The ## operator pastes preprocessing tokens, and two string literals
+ * cannot be pasted into one -- modern compilers reject it with
+ * "pasting \"i386_\" and \"bad\" does not give a valid preprocessing
+ * token". Older preprocessors tolerated it.
+ *
+ * None is needed: adjacent string literals are concatenated by the
+ * compiler, so m "bad" with m as "i386_" yields "i386_bad" exactly as
+ * intended.
+ */
 #define ATSYS_NAMES(m) \
-    m ## "bad", m ## "lites", m ## "lites", m ## "lites", m ## "lites", \
-    m ## "lites", \
-    m ## "bnr", m ## "netbsd", m ## "freebsd", m ## "ux", \
-    "script", m ## "isc4", m ## "linux", m ## "linux", m ## "linux", \
-    m ## "ultrix", m ## "riscos", m ## "hpbsd", m ## "hpux", m ## "hpkludge", \
-    m ## "hpelf", m ## "osf1"
+    m "bad", m "lites", m "lites", m "lites", m "lites", \
+    m "lites", \
+    m "bnr", m "netbsd", m "freebsd", m "ux", \
+    "script", m "isc4", m "linux", m "linux", m "linux", \
+    m "ultrix", m "riscos", m "hpbsd", m "hpux", m "hpkludge", \
+    m "hpelf", m "osf1"
 
 union exec_data {
 	unsigned short	short_magic;
