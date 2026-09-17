@@ -708,10 +708,35 @@ void main(
 #if OSFMACH3
 kernel_boot_info_t kernel_boot_info;
 
+/*
+ * The compiled-in configuration, used when a server starts with
+ * argc == 0 -- which is always here, since the bootstrap task gives
+ * servers a deliberate dummy zero argument count.
+ *
+ * get_config_info() below hands this to parse_arguments() as argc 4, so
+ * these four strings ARE the configuration; default_root[] above is not
+ * consulted on this path. Changing default_root alone has no effect,
+ * which cost a round to discover: a hardware breakpoint on
+ * device_open() showed LITES asking the kernel for "hd0a" long after
+ * default_root had been changed to "hd0c".
+ *
+ * hd0a -> hd0c, twice. Partition 'c' is the whole disk: getvtoc() in
+ * the kernel's hd driver builds its partition table by reading sector 0
+ * as a DOS partition table, and when that fails -- as it does on an
+ * unpartitioned image -- it falls back to "make partition 'c' the whole
+ * disk", setting d_partitions[PART_DISK] with PART_DISK 2, which
+ * dev_name_lookup spells 'c'. Partition 'a' simply does not exist
+ * there, so hdopen() returns D_NO_SUCH_DEVICE (2502, seen as
+ * kr = 0x9c6 in the "cannot mount root" panic).
+ *
+ * hd0f in the first entry is the server directory prefix and is left
+ * alone: it is only used to derive a path when none is given, and
+ * entry 3 supplies that here.
+ */
 char argv_space[10][40] = {"/dev/hd0f/mach_servers/startup", 
 			   "-s",
-			   "hd0a",
-			   "/dev/hd0a/mach_servers",
+			   "hd0c",
+			   "/dev/hd0c/mach_servers",
 			   (char *)0,};
 
 void get_config_info(
