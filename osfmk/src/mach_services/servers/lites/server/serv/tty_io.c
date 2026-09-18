@@ -257,6 +257,32 @@ mach_error_t tty_open(dev_t dev, int flag, int devtype, struct proc *p)
 	    tp->t_cflag = TTYDEF_CFLAG;
 
 	      rc = tty_param(tp, &tp->t_termios);
+
+	      /*
+	       * A device that does not implement TTY_STATUS is not an
+	       * error. tty_param() ends with
+	       *
+	       *   error = device_set_status(tp->t_device_port, TTY_STATUS,
+	       *                             (int *)&ttstat, ttstat_count);
+	       *   return (error);
+	       *
+	       * and OSFMK's i386 console answers D_INVALID_OPERATION,
+	       * because the kd driver has no TTY_STATUS. That error was
+	       * returned raw from here, through cons_open() and
+	       * spec_open() to open(), where e_mach_error_to_errno() turns
+	       * it into ENOTTY -- so every open of /dev/console failed with
+	       * "Inappropriate ioctl for device" and init could never get a
+	       * console.
+	       *
+	       * tty_param() already ignores the matching device_get_status()
+	       * with a (void) cast, and the line below sets TS_CARR_ON with
+	       * the comment "should get from TTY_STATUS", so this code
+	       * already assumes the interface may be absent. Treat a set
+	       * that is refused the same way: the speeds and flags simply do
+	       * not apply to this device.
+	       */
+	      if (rc == D_INVALID_OPERATION)
+		  rc = D_SUCCESS;
 	      if (rc != D_SUCCESS)
 		return(rc);
 
