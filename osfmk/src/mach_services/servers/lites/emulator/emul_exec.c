@@ -234,7 +234,12 @@ errno_t emul_exec_load(
 	vm_offset_t		*heap_end,	/* OUT */
 	mach_port_t		image_port)
 {
-#define NSECTIONS 6		/* generous: 4 is needed for known binaries */
+/*
+ * One more than MAX_PHDRS: parse_exec_file() writes an EXEC_M_STOP
+ * entry after the last segment. Was 6, which was one too few for a
+ * six-header binary.
+ */
+#define NSECTIONS (MAX_PHDRS + 1)
 	mach_error_t kr;
 	struct exec_section secs[NSECTIONS];
 	int i;

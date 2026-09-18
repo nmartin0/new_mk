@@ -870,7 +870,12 @@ static mach_error_t server_exec_load(
 	union exec_data		*hdr,
 	struct exec_load_info	*li)	/* OUT (space allocated by caller) */
 {
-#define NSECTIONS 6		/* generous: 4 is needed for known binaries */
+/*
+ * One more than MAX_PHDRS: parse_exec_file() writes an EXEC_M_STOP
+ * entry after the last segment. Was 6, which was one too few for a
+ * six-header binary such as the emulator.
+ */
+#define NSECTIONS (MAX_PHDRS + 1)
 	mach_error_t kr;
 	struct exec_section secs[NSECTIONS];
 	int i;

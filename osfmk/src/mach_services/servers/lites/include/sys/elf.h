@@ -80,7 +80,23 @@ typedef struct {
 
    Also places a ceiling on the number of program headers.  */
 
-#define MAX_PHDRS 4
+/*
+ * Raised from 4.
+ *
+ * Four was enough for the ELF a 1995 linker produced. Modern GNU ld
+ * emits GNU_STACK and GNU_RELRO as well, so the emulator alone has six
+ * program headers, and parse_exec_file() loops to e_phnum over this
+ * array. Reading past it fed garbage into the loader: the real data and
+ * bss segment set li->zero_start correctly and an out-of-bounds header
+ * that happened to look like a writable PT_LOAD then overwrote it, so
+ * the emulator's crt0 cleared the wrong page and left its BSS holding
+ * whatever was there.
+ *
+ * parse_exec_file() also bounds its loop by this value now, so a binary
+ * with more headers than this loses segments rather than reading past
+ * the end of the struct. Sixteen is generous for the linkers in use.
+ */
+#define MAX_PHDRS 16
 typedef struct {
   Elf32_Ehdr ehdr;
   Elf32_Phdr phdrs[MAX_PHDRS];

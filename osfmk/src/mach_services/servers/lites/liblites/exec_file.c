@@ -582,14 +582,29 @@ mach_error_t elf_parse_exec_file(
 {
 	unsigned int phdr;
 
-	if (nsecs < elf->ehdr.e_phnum)
+	/*
+	 * The loop writes secs[phdr+1].how = EXEC_M_STOP after the last
+	 * segment, so the array needs one entry more than the number of
+	 * headers processed, not the same number. The old test was
+	 * "nsecs < e_phnum", which let a 6-header binary into a 6-entry
+	 * array and wrote one past the end.
+	 */
+	if (nsecs <= elf->ehdr.e_phnum && nsecs <= MAX_PHDRS)
 		return LITES_EFBIG;
 
 	exec_load_info_clear(li);
 
 
 	/* Now iterate over them filling in info as needed.  */
-	for (phdr = 0; phdr < elf->ehdr.e_phnum; phdr++) {
+	/*
+	 * Bounded by MAX_PHDRS as well as e_phnum: elf->phdrs is a
+	 * fixed-size array overlaid on the file, and looping to e_phnum
+	 * alone reads past it for any binary with more headers. See
+	 * include/sys/elf.h.
+	 */
+	for (phdr = 0;
+	     phdr < elf->ehdr.e_phnum && phdr < MAX_PHDRS;
+	     phdr++) {
 		vm_size_t off;
 
 		/* Skip zero sized segments and those which are not part
