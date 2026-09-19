@@ -157,10 +157,44 @@ errno_t e_mach_error_to_errno(mach_error_t kr)
 	if ((kr & (system_emask|sub_emask)) == unix_err(0))
 	    return err_get_code(kr);
 
-	/* All else failed. Get zapped. */
-	e_bad_mach_error(kr);
-	/*NOTREACHED*/
-	return kr;		/* avoid bogus gcc 2.5.8 warning */
+	/*
+	 * AI-ONLY NOTE, 2026: an unmappable error fails the SYSCALL, it
+	 * does not kill the process.
+	 *
+	 * This used to call e_bad_mach_error(), which prints the code and
+	 * calls task_terminate(). So any value reaching here that was not
+	 * a recognised Mach error and not an encapsulated errno destroyed
+	 * the program, wherever it came from.
+	 *
+	 * That is how a missing return statement in the server's
+	 * set_task_priority() killed login: donice() returned an
+	 * uninitialised register, setpriority(2) carried it back, nothing
+	 * decoded it, and the emulator terminated the task. The message
+	 *
+	 *   libemul: Can't handle error code x80aad3b:
+	 *   "(server/?) unknown subsystem error". Terminating.
+	 *
+	 * was the only trace, and it named a value rather than a syscall,
+	 * so the cause looked like a Mach failure in a subsystem that was
+	 * in fact working. A failed setpriority(2) would have been ignored
+	 * by login and nobody would have lost an evening.
+	 *
+	 * The diagnostic is kept, deliberately and at the same volume: a
+	 * value arriving here is still a bug in the server, and silence
+	 * would hide it. What changes is the consequence. EINVAL is the
+	 * errno for "the system call could not make sense of this", and no
+	 * BSD syscall promises never to return it.
+	 *
+	 * What this does NOT do: it does not make the syscall succeed, and
+	 * it does not touch e_bad_mach_error(), which still terminates for
+	 * the two callers that have no syscall to fail -- one in the HP-UX
+	 * personality and one below.
+	 */
+	e_emulator_error("libemul: unmappable error code x%x: \"%s\". "
+			 "Failing the call with EINVAL.\n",
+			 kr, mach_error_string(kr) ? mach_error_string(kr)
+						  : "(null)");
+	return EINVAL;
 }
 
 errno_t errno_bsd_to_linux_table[___ELAST+1] = {
