@@ -54,7 +54,7 @@
  */
 
 #include <sys/types.h>
-#include <limits.h>
+#include <machine/limits.h>	/* was <limits.h>: that is gcc's, and this tree links no compiler-supplied file. Only CHAR_BIT is needed and machine/limits.h has it -- sys/param.h uses the same header. */
 
 /*
  * Depending on the desired operation, we view a `long long' (aka quad_t) in

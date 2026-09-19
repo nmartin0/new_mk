@@ -44,7 +44,7 @@ static char sccsid[] = "@(#)qdivrem.c	8.1 (Berkeley) 6/4/93";
  * section 4.3.1, pp. 257--259.
  */
 
-#include "quad.h"
+#include <libkern/quad.h>	/* was "quad.h": -I- disables source-relative quoted includes, and the tree uses <libkern/...> (see scanc.c) */
 
 #define	B	(1 << HALF_BITS)	/* digit base */
 
