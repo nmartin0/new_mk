@@ -58,7 +58,55 @@ LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
 VMUNIX		= startup.${VERSION}.${_CONFIG_}
 OTHERS		= ../${_CONFIG_}/Makefile
 
+#
+# LITES's configuration, run in ODE's export pass (FIRST) so that
+# everything built after it -- liblites in the SECOND pass, the server
+# and the emulator in COMPILE -- can use what it produces: the option
+# headers and the configured compiler flags (Makevar). The GNU route's
+# configure runs this same step before anything compiles, and compiles
+# everything with -I../server; here the results are published to
+# ${EXPORTBASE}/lites/server/ instead, which is how OSF's tree shares
+# what one component generates, and is what Helander's own template.mk
+# describes as "the EXPORTBASE/server directory [that] contains the
+# include files".
+#
+# It uses the maintained configuration -- conf/MASTER, conf/files and
+# conf/doconfig.sh, from the GNU layer, read and not modified (D28) --
+# not this directory's own MASTER and files, which are Helander's
+# 1994-95 versions: they have no osfmach3 option and none of the ext2fs
+# sources, so they cannot describe the configuration that boots.
+#
+# Hooked on EXPINC_TARGETS, as libpthreads hooks its host-generated
+# pthread_impl.h onto the export pass. The single bsd_types_gen.h will
+# be made here as well, once the two generated headers its compilation
+# needs -- vnode_if.h and sys/syscall.h -- are.
+#
+VPATH		= ${LITES_TOP}
+EXPINC_TARGETS	= lites_configured
+LITES_MASTER	= conf/${target_cpu}/MASTER
+LITES_SERVER_EXPDIR = ${EXPORTBASE}/lites/server
+ansi_CPP	?= ${ANSI_CC} -E
+INCFLAGS	= -I${LITES_TOP}server
+INCDIRS		:= -I. -I${EXPORTBASE}/lites ${INCDIRS}
+
 .include <${RULES_MK}>
+
+lites_configured: ${LITES_MASTER} conf/MASTER conf/files conf/${target_cpu}/files
+	# -x c: gcc -E, unlike a standalone cpp, takes a file named MASTER
+	# for linker input and preprocesses nothing. The check after
+	# Doopt.sh makes that failure, or any like it, stop here.
+	@echo "[ configuring LITES ${CONFIG} from ${LITES_MASTER} ]"
+	top=${${LITES_MASTER}:P:H:H:H}; \
+	${ansi_CPP} -x c -P -undef -nostdinc -I$$top -DCONFIG=${CONFIG} \
+	    ${${LITES_MASTER}:P} | \
+	    /bin/sh $$top/conf/doconfig.sh $$top/conf/move-if-change && \
+	/bin/sh Doopt.sh
+	@set -- *.h; [ -f "$$1" ] || { \
+	    echo "LITES configuration produced no option headers" >&2; exit 1; }
+	${MAKEPATH} ${LITES_SERVER_EXPDIR}/.
+	${CP} *.h Makevar ${LITES_SERVER_EXPDIR}/
+	touch ${.TARGET}
+
 
 ${_CONFIG_}:	${MASTER} ${MASTER_TM} \
 		${MASTER_LOCAL} ${MASTER_TM_LOCAL} 

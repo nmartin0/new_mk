@@ -34,7 +34,7 @@
 # 	[92/06/16  16:18:31  mrt]
 # 
 
-EXPINC_SUBDIRS	= include
+EXPINC_SUBDIRS	= include server
 EXPLIB_SUBDIRS	= liblites
  
 SUBDIRS		=  server emulator
