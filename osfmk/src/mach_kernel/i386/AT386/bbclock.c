@@ -210,7 +210,13 @@ bbc_gettime(
 	dom = hexdectodec(rtclk.rtc_dom);
 	mon = hexdectodec(rtclk.rtc_mon);
 	yr = hexdectodec(rtclk.rtc_yr);
-	yr = (yr < 70) ? yr+100 : yr;
+	/*
+	 * A full year, as writetodc() uses: yeartoday() applies the whole
+	 * Gregorian rule, including the 400-year one, which is wrong for
+	 * years counted from 1900. Given 100 for 2000 it returned 365, so
+	 * every date from March 2000 on read exactly one day early.
+	 */
+	yr = (yr < 70) ? yr+2000 : yr+1900;
 	n = sec + 60 * min + 3600 * hr;
 	n += (dom - 1) * 3600 * 24;
 	if (yeartoday(yr) == 366)
@@ -218,7 +224,7 @@ bbc_gettime(
 	for (i = mon - 2; i >= 0; i--)
 		days += month[i];
 	month[1] = 28;
-	for (i = 70; i < yr; i++)
+	for (i = 1970; i < yr; i++)
 		days += yeartoday(i);
 	n += days * 3600 * 24;
 	cur_time->tv_sec  = n;
