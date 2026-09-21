@@ -31,7 +31,8 @@
 # in the directory "machine". This eliminates the need for 
 # machine links in the sources.
 
-VPATH			= ${MAKETOP}server/parisc/include
+LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
+VPATH			= ${LITES_TOP}server/parisc/include
 
 DATAFILES		= endian.h limits.h signal.h param.h proc.h \
 			  stdarg.h trap.h ansi.h types.h \

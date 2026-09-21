@@ -52,7 +52,8 @@ ILIST		= ${EMULATOR}
 IDIR		= /special/
 NO_STRIP	=
 
-INCFLAGS	= -I${MAKETOP}server -I${MAKETOP}include
+LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
+INCFLAGS	= -I${LITES_TOP}server -I${LITES_TOP}include
 
 # The EXPORTBASE/bsdss directory contains the include files
 # in machine
@@ -61,8 +62,8 @@ INCDIRS		:= -I${EXPORTBASE} ${INCDIRS}
 
 # Makefile-version defines VERSION
 
-.if exists( ${MAKETOP}Makefile-version)
-.include "${MAKETOP}Makefile-version"
+.if exists( ${LITES_TOP}Makefile-version)
+.include "${LITES_TOP}Makefile-version"
 .endif
 
 EMULATOR        = emulator.${VERSION}

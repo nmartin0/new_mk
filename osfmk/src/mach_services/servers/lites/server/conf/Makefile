@@ -41,6 +41,7 @@ MASTER_TM	= ${target_cpu}/MASTER
 MASTER_LOCAL	= MASTER.local
 MASTER_TM_LOCAL	= ${target_cpu}/MASTER.local
 
+LITES_CONFIG	?= STD+WS+osfmach3+ext2fs
 CONFIG		?=${LITES_${TARGET_MACHINE}_CONFIG:U${LITES_CONFIG:UDEFAULT}}
 
 .if defined (PROFILING)
@@ -49,6 +50,10 @@ _CONFIG_	= ${CONFIG:S/+gprof//}+gprof
 _CONFIG_	= ${CONFIG}
 .endif
 
+LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
+.if exists( ${LITES_TOP}Makefile-version)
+.include "${LITES_TOP}Makefile-version"
+.endif
 VMUNIX		= startup.${VERSION}.${_CONFIG_}
 OTHERS		= ../${_CONFIG_}/Makefile
 

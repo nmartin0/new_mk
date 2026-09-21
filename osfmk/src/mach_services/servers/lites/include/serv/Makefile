@@ -46,8 +46,9 @@
 DEPENDENCIES	=
 
 IDIR		= /include/serv/
-VPATH		= ${MAKETOP}server/serv
-INCFLAGS	+= -I.. -I${MAKETOP}server -I${MAKETOP}
+LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
+VPATH		= ${LITES_TOP}server/serv
+INCFLAGS	+= -I.. -I${LITES_TOP}server -I${LITES_TOP}
 INCDIRS		:= -I${EXPORTBASE}/server ${INCDIRS}
 
 MIGFLAGS = -DCOMPAT_43 -DEMULATOR

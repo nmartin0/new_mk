@@ -37,8 +37,9 @@ VPATH		= ..:${EXPORTBASE}/lites
 
 CONFIG          ?=${LITES_${TARGET_MACHINE}_CONFIG:U${LITES_CONFIG:UDEFAULT}}
 
-.if exists( ${MAKETOP}Makefile-version)
-.include "${MAKETOP}Makefile-version"
+LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
+.if exists( ${LITES_TOP}Makefile-version)
+.include "${LITES_TOP}Makefile-version"
 .endif
 
 # set BINARIES to get the osf.obj.mk rules included
