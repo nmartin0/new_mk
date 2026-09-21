@@ -29,12 +29,13 @@
 
 
 # ${EXPORTBASE}/lites has the machine link.
-VPATH		= ..:${EXPORTBASE}/lites
+VPATH		= ..:${EXPORTBASE}/lites/server:${EXPORTBASE}/lites
 
 # We want the LITES version & configuration to be part of this name.
 # Makeconf defined LITES_CONFIG and
 # Makefile-version defined VERSION.
 
+LITES_CONFIG	?= STD+WS+osfmach3+ext2fs
 CONFIG          ?=${LITES_${TARGET_MACHINE}_CONFIG:U${LITES_CONFIG:UDEFAULT}}
 
 LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
@@ -72,7 +73,7 @@ MKODIRS 	= serv/
 
 VOLATILE        ?=
 #XX		= -DBSD=44 -DMACH_IPC_COMPAT=0
-DEFINES		= -nostdinc -I- ${MASTER_DEFINES} ${LOCAL_DEFINES} ${IDENT} -DKERNEL ${XX} $(VOLATILE)
+DEFINES		= -nostdinc ${MASTER_DEFINES} ${LOCAL_DEFINES} ${IDENT} -DKERNEL ${XX} $(VOLATILE)
 #
 # The line below should not be here; it overrides the external default.
 # BUT ... ux is known not to build with -O2 ...
@@ -87,7 +88,15 @@ CC_OPT_EXTRA	?= ${LINENO}
 # NPROFILING_CFLAGS are for files which support profile and thus
 #       should not be compiled with the profiling flags
 
-CFLAGS		= ${DEFINES} ${PROFILING:D-pg -DGPROF}
+#
+# The configured compiler flags, -DUNTYPED_IPC=1 among them, come from
+# the Makevar that LITES's export-pass configuration step publishes, as
+# the GNU route applies its conf/Makevar to every compile.
+#
+.if exists(${EXPORTBASE}/lites/server/Makevar)
+.include "${EXPORTBASE}/lites/server/Makevar"
+.endif
+CFLAGS		= ${DEFINES} ${TARGET_CFLAGS} ${PROFILING:D-pg -DGPROF}
 DRIVER_CFLAGS	=${CFLAGS}
 NPROFILING_CFLAGS=${DEFINES} -DGPROF
 
@@ -99,7 +108,7 @@ INCFLAGS	= -I.. -I../../include
 # The EXPORTBASE/server directory contains the include files
 # in machine
 
-INCDIRS         := -I${EXPORTBASE}/lites ${INCDIRS}
+INCDIRS         := -I. -I${EXPORTBASE}/lites/server -I${EXPORTBASE}/lites ${INCDIRS}
 
 target_cpu	?= ${MACHINE}
 .if (${target_cpu} == "mips" || ${target_cpu} == "i386" || ${target_cpu} == "ns532")
@@ -280,7 +289,7 @@ BSD_1_FILES = bsd_1_server.c
 serv/bsd_server_side.o : bsd_1.server.h
 
 $(BSD_1_FILES) bsd_1_server.h: bsd_types_gen.h serv/bsd_1.defs
-	 $(MIG) $(_MIGFLAGS_) ${DEFINES} -UKERNEL \
+	 ${_MIG_} $(_MIGFLAGS_) ${DEFINES} -UKERNEL \
 		-header /dev/null \
 		-user /dev/null \
 		-server bsd_1_server.c \
@@ -295,7 +304,7 @@ sendsig.o : signal_user.h
 # The C file is patched by hand as I wasn't able to figure out how to
 # get MiG to produce the correct code.
 $(SIG_FILES): bsd_types_gen.h serv/signal.defs
-	$(MIG) $(_MIGFLAGS_) ${DEFINES} -UKERNEL \
+	${_MIG_} $(_MIGFLAGS_) ${DEFINES} -UKERNEL \
 		-header signal_user.h \
 		-user /dev/null \
 		-server /dev/null \
