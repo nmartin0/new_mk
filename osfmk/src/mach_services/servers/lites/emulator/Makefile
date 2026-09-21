@@ -191,7 +191,8 @@ BASE=`./emulator_base`
 # does not use ${_LDFLAGS_}, which in this tree carries gcc-driver
 # options such as -nostartfiles, nor the old -z -T ${BASE} wrapping,
 # written for an emulator_base that printed only an address. Each flag
-# is one tools/lites/build-lites.sh documents:
+# is one the GNU route's build script, tools/lites/build-lites.sh
+# (retired; see its history), documented:
 #
 #   -m elf_i386        a 32-bit link on a 64-bit host's ld
 #   -z muldefs         LITES defines its own printf, vsprintf, sprintf

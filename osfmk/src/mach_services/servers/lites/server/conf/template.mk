@@ -79,7 +79,7 @@ VOLATILE        ?=
 # (conf/Makerules: DEFINES += -DMACH -DLITES). LITES's headers depend
 # on them -- struct buf's b_reply_port and the kernel's errno values
 # sit under #ifdef LITES -- and without them serv/block_io.c does not
-# compile. -Ulinux: tools/lites/build-lites.sh passes it because gnu89
+# compile. -Ulinux: the GNU route's build script passed it because gnu89
 # predefines linux=1, and LITES tests that name.
 #
 # -I- stays here, where Helander put it: this template sets
@@ -231,7 +231,8 @@ ${VMUNIX}.relink: ${LDDEPS} ${NEWVERS_DEPS} LINKSERVER
 #.else
 #
 # The link is the GNU route's own command, keeping Helander's shape
-# around it. Each flag is one tools/lites/build-lites.sh documents:
+# around it. Each flag is one the GNU route's build script,
+# tools/lites/build-lites.sh (retired; see its history), documented:
 #
 #   -m elf_i386        a 32-bit link on a 64-bit host's ld
 #   -z muldefs         LITES defines its own printf, vsprintf, sprintf

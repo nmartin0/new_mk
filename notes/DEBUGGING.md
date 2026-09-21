@@ -643,12 +643,14 @@ a shape, ask the compiler for the others rather than reading.
 
 The build's warning flags do not include `-Wreturn-type`, so add it and
 run a syntax-only pass over every server source with the real compile
-line -- which `build-lites.sh`'s output already contains:
+line -- which the ODE build's log already contains, as the output of
+`sh build/ode.sh -here mach_services/servers/lites > build.log 2>&1`:
 
 ```sh
-grep -m1 "gcc -pipe -c" build.log | sed 's/ [^ ]*\.c$//' > /tmp/cflags
+grep -m1 -E '^gcc .* -c .*/server/[a-z]+/[a-z_0-9]+\.c$' build.log |
+    sed 's/ [^ ]*\.c$//' > /tmp/cflags
 CMD=$(cat /tmp/cflags)
-cd $LITES_BUILD/obj/server
+cd $MK_BUILD/obj/at386/mach_services/servers/lites/server/STD+WS+osfmach3+ext2fs
 for f in $LITES/server/kern/*.c $LITES/server/serv/*.c; do
 	$CMD -Wreturn-type -fsyntax-only $f 2>&1 |
 	    grep -i "control reaches end\|return.*non-void"

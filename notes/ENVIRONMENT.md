@@ -129,10 +129,13 @@ equivalent providing 32-bit startup files and headers) must be present.
 | `$MK_BUILD` | all build output, default `~/.cache/mk7.3` | n/a |
 | `~/mach_stuff` | reference collection, `github.com/nmartin0/mach_stuff` | **no** |
 
-`build-lites.sh` builds the vendored LITES out of tree, into the build
-directory it is given; the source is not written to. It refuses a LITES
-source that lacks the port, since nothing patches it any more and an
-unported LITES would otherwise build and then fail at boot.
+LITES is built by the tree's own ODE rules, like every other server:
+the whole-tree `FIRST` pass configures it from its maintained
+configuration and publishes the result to `export/at386/lites/`, and
+`ode.sh -here mach_services/servers/lites` builds `liblites`, the
+emulator and the server into the object tree, where `boot-ide.sh`
+finds them. The source is not written to. `build-lites.sh`, which
+built it through LITES's own GNU `configure`, is retired.
 
 `mach_stuff` is large. Only the NetBSD sets are needed, and a partial
 clone gets them without the rest:
