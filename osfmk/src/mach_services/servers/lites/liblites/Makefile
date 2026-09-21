@@ -52,7 +52,7 @@ INCDIRS		:= -I${EXPORTBASE} ${INCDIRS}
 .endif
 
 DEFINES		= -DTypeCheck=0 -DMACH_IPC_COMPAT=0 -DLITES
-CFLAGS		= ${DEFINES} -g -nostdinc -I-
+CFLAGS		= ${DEFINES} -g -nostdinc
 PC532_CFLAGS	= -mhimem -DGNU_LD2 -Dns532
 
 MIGFLAGS 	= ${DEFINES}
