@@ -37,6 +37,6 @@ DATAFILES		= endian.h limits.h signal.h param.h stdarg.h \
 
 INCLUDES		= ${DATAFILES}
 
-EXPDIR			= /include/i386/
+EXPDIR			= /lites/i386/
 
 .include <${RULES_MK}>

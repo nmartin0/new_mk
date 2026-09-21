@@ -44,6 +44,6 @@ DATAFILES		= endian.h limits.h signal.h param.h proc.h \
 
 INCLUDES		= ${DATAFILES}
 
-EXPDIR			= /include/parisc/
+EXPDIR			= /lites/parisc/
 
 .include <${RULES_MK}>

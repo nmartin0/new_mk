@@ -25,6 +25,7 @@
 #
 
 IDIR		= /include/sys/
+EXPDIR		= /lites/sys/
 
 INCLUDES = acct.h gprof.h parallel.h synch.h uio.h buf.h ioctl.h \
 	param.h syslimits.h un.h ioctl_compat.h proc.h \

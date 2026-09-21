@@ -46,10 +46,11 @@
 DEPENDENCIES	=
 
 IDIR		= /include/serv/
+EXPDIR		= /lites/serv/
 LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
 VPATH		= ${LITES_TOP}server/serv
 INCFLAGS	+= -I.. -I${LITES_TOP}server -I${LITES_TOP}
-INCDIRS		:= -I${EXPORTBASE}/server ${INCDIRS}
+INCDIRS		:= -I${EXPORTBASE}/lites ${INCDIRS}
 
 MIGFLAGS = -DCOMPAT_43 -DEMULATOR
 MIG_HDRS = bsd_1.h

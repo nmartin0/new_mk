@@ -41,7 +41,7 @@ OTHERS		= machine errno.h
 INCLUDES	= ${OTHERS} time.h dirent.h
 # dirent.h 
 
-EXPDIR		= /include/
+EXPDIR		= /lites/
 
 .include <${RULES_MK}>
 

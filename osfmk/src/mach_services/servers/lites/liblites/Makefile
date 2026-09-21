@@ -43,7 +43,7 @@ INCFLAGS	= -I${LITES_TOP}server -I${LITES_TOP}include
 # The EXPORTBASE/bsdss directory contains the include files
 # in machine
 
-INCDIRS		:= -I${EXPORTBASE} ${INCDIRS}
+INCDIRS		:= -I${EXPORTBASE}/lites ${INCDIRS}
 
 # Makefile-version defines VERSION
 

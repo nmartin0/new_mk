@@ -26,6 +26,7 @@
 #
 
 IDIR		= /include/ufs/ufs/
+EXPDIR		= /lites/ufs/ufs/
 
 LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
 VPATH		= ${LITES_TOP}server/ufs/ufs ${LITES_TOP}server/ufs/ffs ${LITES_TOP}server/ufs/lfs ${LITES_TOP}server/ufs/mfs

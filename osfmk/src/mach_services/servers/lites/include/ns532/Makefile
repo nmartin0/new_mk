@@ -36,6 +36,6 @@ DATAFILES		= endian.h limits.h signal.h param.h stdarg.h \
 
 INCLUDES		= ${DATAFILES}
 
-EXPDIR			= /include/ns532/
+EXPDIR			= /lites/ns532/
 
 .include <${RULES_MK}>
