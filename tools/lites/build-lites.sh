@@ -168,7 +168,7 @@ MAKEARGS="AWK=nawk \
 #                     miscompilation. FreeBSD and Linux both treat the
 #                     flag as mandatory for code of this age, and that
 #                     precedent is the reason it is on.
-CC_FLAGS="-m32 -std=gnu89 -Ulinux -fno-builtin -fgnu89-inline -fcommon -fno-stack-protector -fno-strict-aliasing -fno-pic -I$MR/include/sa_mach -include $HERE/lites-compat.h"
+CC_FLAGS="-m32 -std=gnu89 -Ulinux -fno-builtin -fgnu89-inline -fcommon -fno-stack-protector -fno-strict-aliasing -fno-pic -I$MR/include/sa_mach"
 LIB_LIST="-llites -lthreads -lmach_sa -lsa_mach -lmach_sa"
 
 # The server and the emulator need different entry-point handling, so
