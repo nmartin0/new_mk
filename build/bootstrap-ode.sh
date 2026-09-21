@@ -7,7 +7,7 @@
 #
 # OSFMK 7.3 is built by ODE, not GNU make, and not by make alone: its
 # makefiles are driven by ODE's `build` front end, which reads
-# osfmk7.3/osfmk/src/osc/Buildconf and derives the whole environment from
+# osfmk/src/osc/Buildconf and derives the whole environment from
 # it. `workon` establishes the sandbox that `build` runs inside. So the
 # toolset, not just make, has to exist.
 #

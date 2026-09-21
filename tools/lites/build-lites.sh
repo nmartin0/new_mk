@@ -13,7 +13,7 @@ BUILD=${2:?usage: build-lites.sh <lites-src> <build-dir>}
 MK_BUILD=${MK_BUILD:-$HOME/.cache/mk7.3}
 HERE=$(cd "$(dirname "$0")" && pwd)
 
-OSFMK_TOOLS=$(cd "$HERE/../../osfmk7.3/osfmk" && pwd)
+OSFMK_TOOLS=$(cd "$HERE/../../osfmk" && pwd)
 export OSFMK_TOOLS
 HB=$OSFMK_TOOLS/tools/i386/i386_linux/hostbin
 EXPORT=$MK_BUILD/export/at386
