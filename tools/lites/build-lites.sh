@@ -1,17 +1,39 @@
 #!/bin/sh
 # Build LITES 1.1u3 against an OSFMK 7.3 export tree.
 #
-#   MK_BUILD=~/.cache/mk7.3 ./build-lites.sh <lites-src> <build-dir>
+#   MK_BUILD=~/.cache/mk7.3 ./build-lites.sh <build-dir>
 #
-# Applies tools/lites/lites-osfmk73.patch to the LITES source (idempotent),
-# constructs a MACH_RELEASE_DIR from the OSFMK export tree, configures and
-# builds. Safe to re-run.
+# Builds the LITES vendored at osfmk/src/mach_services/servers/lites,
+# which already carries the port as ordinary source changes. Constructs
+# a MACH_RELEASE_DIR from the OSFMK export tree, configures and builds
+# out of tree, into <build-dir>; the source is not written to. Safe to
+# re-run.
+#
+# The two-argument form, build-lites.sh <lites-src> <build-dir>, still
+# works, for building some other copy -- but see the check below.
 set -e
 
-LITES=${1:?usage: build-lites.sh <lites-src> <build-dir>}
-BUILD=${2:?usage: build-lites.sh <lites-src> <build-dir>}
-MK_BUILD=${MK_BUILD:-$HOME/.cache/mk7.3}
+usage="usage: build-lites.sh [<lites-src>] <build-dir>"
 HERE=$(cd "$(dirname "$0")" && pwd)
+case $# in
+1) LITES=$(cd "$HERE/../../osfmk/src/mach_services/servers/lites" && pwd)
+   BUILD=$1 ;;
+2) LITES=$1; BUILD=$2 ;;
+*) echo "$usage" >&2; exit 1 ;;
+esac
+MK_BUILD=${MK_BUILD:-$HOME/.cache/mk7.3}
+
+# This script used to patch the source it was given. The port now lives
+# in the vendored source itself, so nothing patches anything -- which
+# means a pristine LITES passed here would build WITHOUT the port, and
+# boot into failures that look like new bugs. Refuse it. The marker is
+# the TTY_STATUS tolerance in tty_io.c, without which init can never
+# open the console; any tree that lacks it lacks the port.
+grep -q 'does not implement TTY_STATUS' "$LITES/server/serv/tty_io.c" 2>/dev/null || {
+    echo "build-lites: $LITES does not carry the OSFMK 7.3 port." >&2
+    echo "  Build the vendored copy instead:  build-lites.sh <build-dir>" >&2
+    exit 1
+}
 
 OSFMK_TOOLS=$(cd "$HERE/../../osfmk" && pwd)
 export OSFMK_TOOLS
@@ -21,68 +43,6 @@ EXPORT=$MK_BUILD/export/at386
 for f in "$EXPORT/include" "$EXPORT/lib" "$HB/mig" "$HB/migcom"; do
     [ -e "$f" ] || { echo "missing: $f" >&2; exit 1; }
 done
-
-# --- LITES patches (idempotent) -------------------------------------
-#
-# This used to test one marker from one hunk -- `function bail` in
-# vnode_if.sh -- and skip the whole patch if it was present. That is
-# wrong whenever the patch has GROWN since the tree was patched: the
-# marker is there, the new hunks are not, and the build silently
-# produces a LITES without them. It happened with the pid-2 fix in
-# kern_exit.c, where the symptom was a respawn loop that the commit
-# claimed to have fixed.
-#
-# Ask the real question instead: does the patch reverse cleanly? If it
-# does, every hunk is already in the tree. If it does not, apply with
-# --forward, which puts in what is missing and skips what is present.
-PATCHFILE="$HERE/lites-osfmk73.patch"
-
-# LITES_NO_PATCH=1 skips this entirely, for a tree you are managing
-# yourself.
-if [ -n "${LITES_NO_PATCH:-}" ]; then
-    echo "LITES_NO_PATCH set, leaving $LITES alone"
-elif patch -p1 -R --dry-run -s -f -d "$LITES" < "$PATCHFILE" >/dev/null 2>&1; then
-    echo "LITES already patched (all hunks present), skipping"
-else
-    echo "patching LITES"
-    # --forward exits non-zero when it skips an already-applied hunk,
-    # which is not an error here, so the check is whether the tree is
-    # fully patched afterwards rather than what patch returned.
-    # -r - discards reject files and --no-backup-if-mismatch suppresses
-    # .orig copies: an already-applied hunk is skipped here by design,
-    # so its "reject" is noise, and 22 .rej files in a source tree look
-    # like a failed patch to whoever finds them next.
-    patch -p1 --forward -r - --no-backup-if-mismatch \
-        -d "$LITES" < "$PATCHFILE" || true
-    if patch -p1 -R --dry-run -s -f -d "$LITES" < "$PATCHFILE" >/dev/null 2>&1; then
-        echo "LITES patched"
-    else
-        # The tree still does not match the patch after a forward
-        # apply. Two very different things look like this, and the
-        # difference matters:
-        #
-        #   - hunks that could not be applied, which is a problem;
-        #   - LOCAL EDITS to lines the patch also touches, which is
-        #     what developing a LITES change looks like. Editing
-        #     tty_io.c and rebuilding is the normal loop here, and the
-        #     first version of this check failed the build for it.
-        #
-        # So warn rather than stop. Missing hunks were already added
-        # by the forward apply above, which is the case this check
-        # exists for; refusing to build on top of a developer's own
-        # edits helps nobody.
-        echo >&2
-        echo "build-lites: WARNING: $LITES does not match" >&2
-        echo "  $PATCHFILE exactly." >&2
-        echo "  Expected while you are editing LITES yourself. If you" >&2
-        echo "  are not, the tree may be dirty -- check with:" >&2
-        echo "    cd $LITES && git status --short && git diff --stat" >&2
-        echo "  and reset with: git checkout -- ." >&2
-        echo "  Remember to regenerate $PATCHFILE from your changes:" >&2
-        echo "    cd $LITES && git diff > $PATCHFILE" >&2
-        echo >&2
-    fi
-fi
 
 # --- MACH_RELEASE_DIR ------------------------------------------------
 # lib must be a real directory: LITES wants library names we do not use,

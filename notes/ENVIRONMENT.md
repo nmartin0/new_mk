@@ -9,13 +9,16 @@ without rediscovering anything.
 
 ## Quick start
 
-First, the three trees that are not in this repository:
+First, this repository and the one tree that is not in it:
 
 ```sh
-git clone https://github.com/nmartin0/test_mk7.3.git
+git clone -b dev https://github.com/nmartin0/new_mk.git
 git clone https://github.com/andreiw/ode4linux.git     ~/ode4linux
-git clone https://github.com/nmartin0/lites-1.1.u3.git ~/lites-1.1.u3
 ```
+
+LITES is not a separate clone any more: it is vendored at
+`osfmk/src/mach_services/servers/lites`, with the port as ordinary source
+changes.
 
 Then:
 
@@ -76,7 +79,7 @@ give the guest a serial console and writes it to `/tmp/console.log`.
 The whole sequence, after the build above:
 
 ```sh
-sh tools/lites/build-lites.sh ~/lites-1.1.u3 ~/lites-build
+sh tools/lites/build-lites.sh ~/lites-build
 
 MIRROR=file://$HOME/mach_stuff/netbsd-1.0-i386/binary \
 	sh tools/mkroot-netbsd.sh          # /tmp/root.img, ext2, NetBSD 1.0
@@ -124,14 +127,13 @@ equivalent providing 32-bit startup files and headers) must be present.
 | path | what | modified? |
 |---|---|---|
 | `~/ode4linux` | ODE toolset source (Warkentin, 2014), `github.com/andreiw/ode4linux` | **no** |
-| `~/lites-1.1.u3` | the LITES source, `github.com/nmartin0/lites-1.1.u3` | by `build-lites.sh`, idempotently |
 | `$MK_BUILD` | all build output, default `~/.cache/mk7.3` | n/a |
 | `~/mach_stuff` | reference collection, `github.com/nmartin0/mach_stuff` | **no** |
 
-`build-lites.sh` applies `tools/lites/lites-osfmk73.patch` to the LITES
-clone in place, so that tree ends up modified and `git status` there is
-not empty. It detects an already-patched tree and skips, so re-running
-is safe.
+`build-lites.sh` builds the vendored LITES out of tree, into the build
+directory it is given; the source is not written to. It refuses a LITES
+source that lacks the port, since nothing patches it any more and an
+unported LITES would otherwise build and then fail at boot.
 
 `mach_stuff` is large. Only the NetBSD sets are needed, and a partial
 clone gets them without the rest:
