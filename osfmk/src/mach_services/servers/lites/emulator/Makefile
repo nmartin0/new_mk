@@ -141,6 +141,24 @@ DEP_OFILES	= e_mig_support.o emul_generic.o error_codes.o emul_init.o \
 ansi_CPP	?= ${ANSI_CC} -E
 .include <${RULES_MK}>
 
+#
+# ODE's rules define no .s.o transformation, so the emulator's two
+# assembler sources are compiled with the tree's own explicit rule, as
+# libmach's AT386/machdep.mk writes it and as liblites uses it: copy
+# x.s to x.S so the compiler preprocesses it, then compile with
+# -DASSEMBLER. The GNU route also passes -D__LANGUAGE_ASSEMBLY; nothing
+# in LITES or in OSF's exported headers tests it.
+#
+i386_SFILES	= emul_misc_asm.o emul_vector.o
+SFILES		= ${${target_cpu}_SFILES}
+
+${SFILES:.o=.S}: $${.TARGET:.S=.s}
+	${RM} ${_RMFLAGS_} ${.TARGET}
+	${CP} ${${.TARGET:.S=.s}:P} ${.TARGET}
+
+${SFILES}: $${.TARGET:.o=.S}
+	${_CC_} -DASSEMBLER ${_CCFLAGS_} -c ${.TARGET:.o=.S}
+
 BASE="`./emulator_base`"
 
 I386_LDFLAGS	= -z -T ${BASE}
