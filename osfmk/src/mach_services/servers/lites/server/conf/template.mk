@@ -250,9 +250,25 @@ ${OBJS}: ${OBJSDEPS}
 
 # Use the standard rules with slightly non-standard .IMPSRC
 
+#
+# Each object's source is named by its x.o_SOURCE line, which
+# filltemplate.sh writes as config does. OSF's rules compile from it
+# only through a recipe; the dependency alone lets make's .c.o rule
+# find a source of the same name, which here means only the generated
+# files copied into this directory. So the C objects get the kernel
+# template's recipe (mach_kernel/conf/template.mk), with ODE's ${_CC_}
+# for the kernel's ${KCC}; the assembler objects get the tree's own
+# assembler rule, libmach's -- copy to .S so the compiler preprocesses
+# it, then compile with -DASSEMBLER -- finding their source the same
+# way.
+#
 ${COBJS}: $${$${.TARGET}_SOURCE}
+	${_CC_} -c ${_CCFLAGS_} ${${${.TARGET}_SOURCE}:P}
 
 ${SOBJS}: $${$${.TARGET}_SOURCE}
+	${RM} ${_RMFLAGS_} ${.TARGET:.o=.S}
+	${CP} ${${${.TARGET}_SOURCE}:P} ${.TARGET:.o=.S}
+	${_CC_} -DASSEMBLER ${_CCFLAGS_} -c ${.TARGET:.o=.S}
 
 ${BOBJS}: $${$${.TARGET}_SOURCE}
 
