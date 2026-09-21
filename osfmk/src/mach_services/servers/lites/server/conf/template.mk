@@ -46,7 +46,8 @@ LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
 # set BINARIES to get the osf.obj.mk rules included
 BINARIES        =
 
-VMUNIX          = vmunix.${VERSION}.${CONFIG}
+# The server's name as LITES's own builds give it (D29), not vmunix.
+VMUNIX          = startup.${VERSION}.${CONFIG}
 OTHERS          = ${VMUNIX}
 
 ILIST           = ${VMUNIX}
@@ -228,7 +229,32 @@ ${VMUNIX}.relink: ${LDDEPS} ${NEWVERS_DEPS} LINKSERVER
 #.if 	defined(PROFILING)
 #CRT 	= ${MONCRT0}
 #.else
-CRT	= ${CRT0}
+#
+# The link is the GNU route's own command, keeping Helander's shape
+# around it. Each flag is one tools/lites/build-lites.sh documents:
+#
+#   -m elf_i386        a 32-bit link on a 64-bit host's ld
+#   -z muldefs         LITES defines its own printf, vsprintf, sprintf
+#   --defsym __start=__start_mach
+#                      LITES links -e __start (${TARGET_LDFLAGS}, from
+#                      Makevar); this crt0 defines __start_mach, and
+#                      without the alias the server dies before crt0
+#                      runs
+#   crt0.o             OSFMK keeps it inside libsa_mach.a, not as a
+#                      standalone file, so it is extracted here
+#   the libraries      liblites; cthreads (the GNU route's -lthreads);
+#                      mach_sa and sa_mach, which reference each other
+#
+# crt0.o and vers.o come before the objects, as in the GNU link. size
+# and strip are the host's, as the GNU route uses them: XSTRIP and
+# SIZE, which the vendor rule used, are defined nowhere in this tree's
+# makedefs, and ${XSTRIP} ${VMUNIX}.out would have run the server's
+# own name as a command. The copy to ${EXPORTBASE}/special/ goes: no
+# OSF component copies a program into the export tree, and binaries
+# stay in the object tree (D29).
+#
+SERVER_LDFLAGS	= -m elf_i386 -z muldefs --defsym __start=__start_mach
+SERVER_LIBS	= -L${EXPORTBASE}/lib -llites -lcthreads -lmach_sa -lsa_mach -lmach_sa
 #.endif
 
 LINKSERVER: .USE
@@ -242,17 +268,17 @@ LINKSERVER: .USE
 	@# arguments and writes a version string the port's compiler rejects.
 	@sh ${../../conf/newvers.sh:P} ${../../conf/copyright:P} Lites ${VERSION} ${CONFIG}
 	@${_CC_} -c ${_CCFLAGS_} vers.c
-	@${RM} -f ${VMUNIX} ${VMUNIX}.out ${VMUNIX}.unstripped
+	@${RM} -f ${VMUNIX} ${VMUNIX}.out ${VMUNIX}.unstripped crt0.o
 	@echo "loading ${VMUNIX}"
-	ld  -o ${VMUNIX}.out ${UX_LDFLAGS} ${LIBDIRS} \
-		${CRT} ${LDOBJS} vers.o -llites ${LIBS} ${LDLIBS} && \
+	ar x ${EXPORTBASE}/lib/libsa_mach.a crt0.o
+	ld -o ${VMUNIX}.out ${SERVER_LDFLAGS} ${TARGET_LDFLAGS} \
+		crt0.o vers.o ${LDOBJS} ${SERVER_LIBS} && \
 		${MV} ${VMUNIX}.out ${VMUNIX}.unstripped
-	-${SIZE} ${VMUNIX}.unstripped
+	-size ${VMUNIX}.unstripped
 	${CP} ${VMUNIX}.unstripped ${VMUNIX}.out
-	${XSTRIP} ${VMUNIX}.out && ${MV} ${VMUNIX}.out ${VMUNIX}
+	strip ${VMUNIX}.out && ${MV} ${VMUNIX}.out ${VMUNIX}
 	@${RM} -f vmunix
 	ln ${VMUNIX} vmunix
-	${CP} ${VMUNIX} ${EXPORTBASE}/special/${VMUNIX}
 
 
 #
