@@ -33,6 +33,7 @@
 #  different.
 #
 
+KERN_MACHINE_DIR ?= ${MACHINE}
 EXPINC_SUBDIRS	= ${KERN_MACHINE_DIR} serv sys ufs
 EXPORT_USING_TAR=
 
