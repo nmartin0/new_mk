@@ -41,7 +41,6 @@
 target_cpu	?= ${MACHINE}
 VPATH		= ${target_cpu}:extra:programs:../server:${EXPORTBASE}/lites/server:${EXPORTBASE}/lites
 
-EXPINC_SUBDIRS	= sys
 # EXPLIB_SUBDIRS	= libsyscall
 
 OTHERS		= ${EMULATOR}
@@ -149,23 +148,14 @@ ${EMULATOR}: ${EMULATOR_OFILES} emulator_base
 
 ${DEP_OFILES} : bsd_1.h
 ${DEP_OFILES} : sys/syscall.h
-sys/syscall.h : emul_sysent.c
-
 #
-#  The sysent tables, mapping trap numbers to actions, are generated
-#  automatically on both the emulator and the server side:
+# sys/syscall.h is generated once, by LITES's export-pass configuration
+# step, and published to ${EXPORTBASE}/lites/sys/, where VPATH and
+# INCDIRS find it. This directory used to run makesyscalls.sh itself,
+# and its sys/ subdirectory ran it a second time to export the result
+# -- with no EXPDIR, into a placeholder _MISSING_EXPDIR_. Neither run
+# is needed; nothing here used emul_sysent.c except as a target name.
 #
-
-emul_sysent.c: ../server/kern/makesyscalls.sh ../server/kern/syscalls.master
-	-rm -rf tmp sys libjacket libsys
-	-mkdir tmp sys libjacket libsys
-	cd tmp;/bin/sh ${../server/kern/makesyscalls.sh:P} \
-			${../server/kern/syscalls.master:P}
-
-#
-#  Mach IPC-based interfaces
-#
-
 MAKE_SERV = [ -d serv ] || mkdir serv
 
 BSD_FILES = bsd_1.h serv/bsd_1_user.c
@@ -216,33 +206,14 @@ emul_mach_user.c: emul_mach.defs
 		${emul_mach.defs:P}
 
 #
-# bsd_types_gen needs to be preprocessed as for the target machine but run
-# on the host machine.  In order to get the correct predefines it is
-# necessary to use the target preprocessor and target include directories.
-
-
-bsd_types_gen_CCTYPE	= host
+# bsd_types_gen.h is generated once, by LITES's export-pass
+# configuration step, the way OSFMK 7.3 makes assym, and published to
+# ${EXPORTBASE}/lites/server/. This directory used to build its own copy
+# by running a host program, as UX 28's emulator did.
+#
 HOST_CFLAGS		= ${DEFINES}
 HOST_LDFLAGS		= ${LDFLAGS}
 
-
-xxx_bsd_types_gen.c: serv/bsd_types_gen.c
-	${ansi_CPP} -P ${_CCFLAGS_} ${serv/bsd_types_gen.c:P} > xxx_bsd_types_gen.c
-	cat /dev/null >> bsd_types_gen.d
-	sed 's/^bsd_types_gen\.o/xxx_bsd_types_gen.c/' \
-			bsd_types_gen.d > xxx_bsd_types_gen.c.d
-	${RM} bsd_types_gen.d
-
-bsd_types_gen: xxx_bsd_types_gen.c
-	( LPATH="${_host_LPATH_}"; export LPATH; \
-	${HOST_CC} ${_host_FLAGS_} -o bsd_types_gen.X xxx_bsd_types_gen.c)
-	${MV} bsd_types_gen.X bsd_types_gen
-
-bsd_types_gen.h : bsd_types_gen
-	-$(MAKE_SERV)
-	./bsd_types_gen > bsd_types_gen.h
-
-### emulator_base needs special treatment
 emulator_base_CCTYPE	= host
 xxx_emulator_base.o_CCTYPE	= host
 emulator_base_OFILES	= xxx_emulator_base.o
