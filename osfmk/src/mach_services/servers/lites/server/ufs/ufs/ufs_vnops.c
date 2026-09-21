@@ -2129,7 +2129,7 @@ ufs_advlock(ap)
 		return (error);
 	
 	default:
-		free(lock, M_LOCKF);
+		bsd_free(lock, M_LOCKF);
 		return (EINVAL);
 	}
 	/* NOTREACHED */
@@ -2223,7 +2223,7 @@ ufs_makeinode(mode, dvp, vpp, cnp)
 		mode |= IFREG;
 
 	if (error = VOP_VALLOC(dvp, mode, cnp->cn_cred, &tvp)) {
-		free(cnp->cn_pnbuf, M_NAMEI);
+		bsd_free(cnp->cn_pnbuf, M_NAMEI);
 		vput(dvp);
 		return (error);
 	}
@@ -2275,7 +2275,7 @@ bad:
 	 * Write error occurred trying to update the inode
 	 * or the directory so must deallocate the inode.
 	 */
-	free(cnp->cn_pnbuf, M_NAMEI);
+	bsd_free(cnp->cn_pnbuf, M_NAMEI);
 	vput(dvp);
 	ip->i_nlink = 0;
 	ip->i_flag |= IN_CHANGE;

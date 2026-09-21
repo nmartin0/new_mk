@@ -233,13 +233,13 @@ nfssvc(p, uap, retval)
 			    if (slp->ns_numuids < nuidhash_max) {
 				slp->ns_numuids++;
 				nuidp = (struct nfsuid *)
-				   malloc(sizeof (struct nfsuid), M_NFSUID,
+				   bsd_malloc(sizeof (struct nfsuid), M_NFSUID,
 					M_WAITOK);
 			    } else
 				nuidp = (struct nfsuid *)0;
 			    if ((slp->ns_flag & SLP_VALID) == 0) {
 				if (nuidp)
-				    free((caddr_t)nuidp, M_NFSUID);
+				    bsd_free((caddr_t)nuidp, M_NFSUID);
 			    } else {
 				if (nuidp == (struct nfsuid *)0) {
 				    nuidp = slp->ns_lruprev;
@@ -343,7 +343,7 @@ nfssvc_addsock(fp, mynam)
 		slp = tslp;
 	else {
 		slp = (struct nfssvc_sock *)
-			malloc(sizeof (struct nfssvc_sock), M_NFSSVC, M_WAITOK);
+			bsd_malloc(sizeof (struct nfssvc_sock), M_NFSSVC, M_WAITOK);
 		bzero((caddr_t)slp, sizeof (struct nfssvc_sock));
 		slp->ns_prev = nfssvc_sockhead.ns_prev;
 		slp->ns_prev->ns_next = slp;
@@ -389,7 +389,7 @@ nfssvc_nfsd(nsd, argp, p)
 	s = splnet();
 	if (nd == (struct nfsd *)0) {
 		nsd->nsd_nfsd = nd = (struct nfsd *)
-			malloc(sizeof (struct nfsd), M_NFSD, M_WAITOK);
+			bsd_malloc(sizeof (struct nfsd), M_NFSD, M_WAITOK);
 		bzero((caddr_t)nd, sizeof (struct nfsd));
 		nd->nd_procp = p;
 		nd->nd_cr.cr_ref = 1;
@@ -621,7 +621,7 @@ nfssvc_nfsd(nsd, argp, p)
 done:
 	remque(nd);
 	splx(s);
-	free((caddr_t)nd, M_NFSD);
+	bsd_free((caddr_t)nd, M_NFSD);
 	nsd->nsd_nfsd = (struct nfsd *)0;
 	if (--nfs_numnfsd == 0)
 		nfsrv_init(TRUE);	/* Reinitialize everything */
@@ -709,7 +709,7 @@ nfsrv_zapsock(slp)
 		while (nuidp != (struct nfsuid *)slp) {
 			onuidp = nuidp;
 			nuidp = nuidp->nu_lrunext;
-			free((caddr_t)onuidp, M_NFSUID);
+			bsd_free((caddr_t)onuidp, M_NFSUID);
 		}
 		slp->ns_lrunext = slp->ns_lruprev = (struct nfsuid *)slp;
 		for (i = 0; i < NUIDHASHSIZ; i++)
@@ -741,7 +741,7 @@ nfs_getauth(nmp, rep, cred, auth_type, auth_str, auth_len)
 		}
 	}
 	nmp->nm_flag &= ~(NFSMNT_WAITAUTH | NFSMNT_WANTAUTH);
-	nmp->nm_authstr = *auth_str = (char *)malloc(RPCAUTH_MAXSIZ, M_TEMP, M_WAITOK);
+	nmp->nm_authstr = *auth_str = (char *)bsd_malloc(RPCAUTH_MAXSIZ, M_TEMP, M_WAITOK);
 	nmp->nm_authuid = cred->cr_uid;
 	wakeup((caddr_t)&nmp->nm_authstr);
 
@@ -758,7 +758,7 @@ nfs_getauth(nmp, rep, cred, auth_type, auth_str, auth_len)
 		error = EAUTH;
 	}
 	if (error)
-		free((caddr_t)*auth_str, M_TEMP);
+		bsd_free((caddr_t)*auth_str, M_TEMP);
 	else {
 		*auth_type = nmp->nm_authtype;
 		*auth_len = nmp->nm_authlen;
@@ -783,7 +783,7 @@ nfsrv_slpderef(slp)
 	if (--(slp->ns_sref) == 0 && (slp->ns_flag & SLP_VALID) == 0) {
 		slp->ns_prev->ns_next = slp->ns_next;
 		slp->ns_next->ns_prev = slp->ns_prev;
-		free((caddr_t)slp, M_NFSSVC);
+		bsd_free((caddr_t)slp, M_NFSSVC);
 	}
 }
 
@@ -811,15 +811,15 @@ nfsrv_init(terminating)
 			slp->ns_prev->ns_next = slp->ns_next;
 			oslp = slp;
 			slp = slp->ns_next;
-			free((caddr_t)oslp, M_NFSSVC);
+			bsd_free((caddr_t)oslp, M_NFSSVC);
 		}
 		nfsrv_cleancache();	/* And clear out server cache */
 	}
 	nfs_udpsock = (struct nfssvc_sock *)
-	    malloc(sizeof (struct nfssvc_sock), M_NFSSVC, M_WAITOK);
+	    bsd_malloc(sizeof (struct nfssvc_sock), M_NFSSVC, M_WAITOK);
 	bzero((caddr_t)nfs_udpsock, sizeof (struct nfssvc_sock));
 	nfs_cltpsock = (struct nfssvc_sock *)
-	    malloc(sizeof (struct nfssvc_sock), M_NFSSVC, M_WAITOK);
+	    bsd_malloc(sizeof (struct nfssvc_sock), M_NFSSVC, M_WAITOK);
 	bzero((caddr_t)nfs_cltpsock, sizeof (struct nfssvc_sock));
 	nfssvc_sockhead.ns_next = nfs_udpsock;
 	nfs_udpsock->ns_next = nfs_cltpsock;

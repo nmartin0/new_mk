@@ -746,7 +746,7 @@ unp_gc()
 	 *
 	 * 91/09/19, bsy@cs.cmu.edu
 	 */
-	extra_ref = malloc(nfiles * sizeof(struct file *), M_FILE, M_WAITOK);
+	extra_ref = bsd_malloc(nfiles * sizeof(struct file *), M_FILE, M_WAITOK);
 	for (nunref = 0, fp = filehead, fpp = extra_ref; fp; fp = nextfp) {
 		nextfp = fp->f_filef;
 		if (fp->f_count == 0)
@@ -761,7 +761,7 @@ unp_gc()
 		sorflush((struct socket *)(*fpp)->f_data);
 	for (i = nunref, fpp = extra_ref; --i >= 0; ++fpp)
 		closef(*fpp);
-	free((caddr_t)extra_ref, M_FILE);
+	bsd_free((caddr_t)extra_ref, M_FILE);
 	unp_gcing = 0;
 }
 

@@ -405,7 +405,7 @@ ioctl(p, uap, retval)
 		return (ENOTTY);
 	memp = NULL;
 	if (size > sizeof (stkbuf)) {
-		memp = (caddr_t)malloc((u_long)size, M_IOCTLOPS, M_WAITOK);
+		memp = (caddr_t)bsd_malloc((u_long)size, M_IOCTLOPS, M_WAITOK);
 		data = memp;
 	} else
 		data = stkbuf;
@@ -414,7 +414,7 @@ ioctl(p, uap, retval)
 			error = copyin(uap->data, data, (u_int)size);
 			if (error) {
 				if (memp)
-					free(memp, M_IOCTLOPS);
+					bsd_free(memp, M_IOCTLOPS);
 				return (error);
 			}
 		} else
@@ -488,6 +488,6 @@ ioctl(p, uap, retval)
 		break;
 	}
 	if (memp)
-		free(memp, M_IOCTLOPS);
+		bsd_free(memp, M_IOCTLOPS);
 	return (error);
 }

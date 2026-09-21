@@ -171,7 +171,7 @@ sonewconn1(head, connstatus)
 	if ((*so->so_proto->pr_usrreq)(so, PRU_ATTACH,
 	    (struct mbuf *)0, (struct mbuf *)0, (struct mbuf *)0)) {
 		(void) soqremque(so, soqueue);
-		(void) free((caddr_t)so, M_SOCKET);
+		(void) bsd_free((caddr_t)so, M_SOCKET);
 		return ((struct socket *)0);
 	}
 	if (connstatus) {

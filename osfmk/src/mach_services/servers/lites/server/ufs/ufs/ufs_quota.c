@@ -740,7 +740,7 @@ dqget(vp, id, ump, type, dqp)
 	if (dqfreel == NODQUOT && numdquot < MAXQUOTAS * desiredvnodes)
 		desireddquot += DQUOTINC;
 	if (numdquot < desireddquot) {
-		dq = (struct dquot *)malloc(sizeof *dq, M_DQUOT, M_WAITOK);
+		dq = (struct dquot *)bsd_malloc(sizeof *dq, M_DQUOT, M_WAITOK);
 		bzero((char *)dq, sizeof *dq);
 		numdquot++;
 	} else {

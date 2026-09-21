@@ -104,7 +104,7 @@ route_usrreq(so, req, m, nam, control)
 	if (req == PRU_ATTACH && rp) {
 		int af = rp->rcb_proto.sp_protocol;
 		if (error) {
-			free((caddr_t)rp, M_PCB);
+			bsd_free((caddr_t)rp, M_PCB);
 			splx(s);
 			return (error);
 		}
@@ -526,9 +526,9 @@ again:
 		if (rw->w_needed <= 0 && rw->w_where) {
 			if (rw->w_tmemsize < len) {
 				if (rw->w_tmem)
-					free(rw->w_tmem, M_RTABLE);
+					bsd_free(rw->w_tmem, M_RTABLE);
 				if (rw->w_tmem = (caddr_t)
-						malloc(len, M_RTABLE, M_NOWAIT))
+						bsd_malloc(len, M_RTABLE, M_NOWAIT))
 					rw->w_tmemsize = len;
 			}
 			if (rw->w_tmem) {
@@ -815,7 +815,7 @@ sysctl_rtable(name, namelen, where, given, new, newlen)
 	}
 	splx(s);
 	if (w.w_tmem)
-		free(w.w_tmem, M_RTABLE);
+		bsd_free(w.w_tmem, M_RTABLE);
 	w.w_needed += w.w_given;
 	if (where) {
 		*given = w.w_where - where;

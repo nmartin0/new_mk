@@ -296,7 +296,7 @@ nfs_mountdiskless(path, which, mountflag, sin, args, vpp)
 	register struct mbuf *m;
 	register int error;
 
-	mp = (struct mount *)malloc((u_long)sizeof(struct mount),
+	mp = (struct mount *)bsd_malloc((u_long)sizeof(struct mount),
 	    M_MOUNT, M_NOWAIT);
 	if (mp == NULL)
 		panic("nfs_mountroot: %s mount malloc", which);
@@ -526,7 +526,7 @@ mountnfs(argp, mp, nam, pth, hst, vpp)
 	return (0);
 bad:
 	nfs_disconnect(nmp);
-	free((caddr_t)nmp, M_NFSMNT);
+	bsd_free((caddr_t)nmp, M_NFSMNT);
 	m_freem(nam);
 	return (error);
 }
@@ -603,7 +603,7 @@ nfs_unmount(mp, mntflags, p)
 	m_freem(nmp->nm_nam);
 
 	if ((nmp->nm_flag & (NFSMNT_NQNFS | NFSMNT_KERB)) == 0)
-		free((caddr_t)nmp, M_NFSMNT);
+		bsd_free((caddr_t)nmp, M_NFSMNT);
 	return (0);
 }
 

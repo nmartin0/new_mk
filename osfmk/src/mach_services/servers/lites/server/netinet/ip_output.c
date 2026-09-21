@@ -759,7 +759,7 @@ ip_setmoptions(optname, imop, m)
 		 * No multicast option buffer attached to the pcb;
 		 * allocate one and initialize to default values.
 		 */
-		imo = (struct ip_moptions*)malloc(sizeof(*imo), M_IPMOPTS,
+		imo = (struct ip_moptions*)bsd_malloc(sizeof(*imo), M_IPMOPTS,
 		    M_WAITOK);
 
 		if (imo == NULL)
@@ -967,7 +967,7 @@ ip_setmoptions(optname, imop, m)
 	    imo->imo_multicast_ttl == IP_DEFAULT_MULTICAST_TTL &&
 	    imo->imo_multicast_loop == IP_DEFAULT_MULTICAST_LOOP &&
 	    imo->imo_num_memberships == 0) {
-		free(*imop, M_IPMOPTS);
+		bsd_free(*imop, M_IPMOPTS);
 		*imop = NULL;
 	}
 
@@ -1035,7 +1035,7 @@ ip_freemoptions(imo)
 	if (imo != NULL) {
 		for (i = 0; i < imo->imo_num_memberships; ++i)
 			in_delmulti(imo->imo_membership[i]);
-		free(imo, M_IPMOPTS);
+		bsd_free(imo, M_IPMOPTS);
 	}
 }
 

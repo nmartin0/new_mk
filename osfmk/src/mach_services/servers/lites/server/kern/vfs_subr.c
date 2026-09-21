@@ -253,7 +253,7 @@ getnewvnode(tag, mp, vops, vpp)
 	if ((vnode_free_list.tqh_first == NULL &&
 	     numvnodes < 2 * desiredvnodes) ||
 	    numvnodes < desiredvnodes) {
-		vp = (struct vnode *)malloc((u_long)sizeof *vp,
+		vp = (struct vnode *)bsd_malloc((u_long)sizeof *vp,
 		    M_VNODE, M_WAITOK);
 		bzero((char *)vp, sizeof *vp);
 		vp->v_cache_state = VC_FREE;
@@ -1203,7 +1203,7 @@ vfs_hang_addrlist(mp, nep, argp)
 		return (0);
 	}
 	i = sizeof(struct netcred) + argp->ex_addrlen + argp->ex_masklen;
-	np = (struct netcred *)malloc(i, M_NETADDR, M_WAITOK);
+	np = (struct netcred *)bsd_malloc(i, M_NETADDR, M_WAITOK);
 	bzero((caddr_t)np, i);
 	saddr = (struct sockaddr *)(np + 1);
 	if (error = copyin(argp->ex_addr, (caddr_t)saddr, argp->ex_addrlen))
@@ -1246,7 +1246,7 @@ vfs_hang_addrlist(mp, nep, argp)
 	np->netc_anon.cr_ref = 1;
 	return (0);
 out:
-	free(np, M_NETADDR);
+	bsd_free(np, M_NETADDR);
 	return (error);
 }
 
@@ -1259,7 +1259,7 @@ vfs_free_netcred(rn, w)
 	register struct radix_node_head *rnh = (struct radix_node_head *)w;
 
 	(*rnh->rnh_deladdr)(rn->rn_key, rn->rn_mask, rnh);
-	free((caddr_t)rn, M_NETADDR);
+	bsd_free((caddr_t)rn, M_NETADDR);
 	return (0);
 }
 	
@@ -1277,7 +1277,7 @@ vfs_free_addrlist(nep)
 		if (rnh = nep->ne_rtable[i]) {
 			(*rnh->rnh_walktree)(rnh, vfs_free_netcred,
 			    (caddr_t)rnh);
-			free((caddr_t)rnh, M_RTABLE);
+			bsd_free((caddr_t)rnh, M_RTABLE);
 			nep->ne_rtable[i] = 0;
 		}
 }

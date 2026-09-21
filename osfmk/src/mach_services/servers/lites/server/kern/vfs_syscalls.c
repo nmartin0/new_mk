@@ -133,18 +133,18 @@ mount(p, uap, retval)
 	/*
 	 * Allocate and initialize the file system.
 	 */
-	mp = (struct mount *)malloc((u_long)sizeof(struct mount),
+	mp = (struct mount *)bsd_malloc((u_long)sizeof(struct mount),
 		M_MOUNT, M_WAITOK);
 	bzero((char *)mp, (u_long)sizeof(struct mount));
 	mp->mnt_op = vfssw[uap->type];
 	if (error = vfs_lock(mp)) {
-		free((caddr_t)mp, M_MOUNT);
+		bsd_free((caddr_t)mp, M_MOUNT);
 		vput(vp);
 		return (error);
 	}
 	if (vp->v_mountedhere != NULL) {
 		vfs_unlock(mp);
-		free((caddr_t)mp, M_MOUNT);
+		bsd_free((caddr_t)mp, M_MOUNT);
 		vput(vp);
 		return (EBUSY);
 	}
@@ -188,7 +188,7 @@ update:
 	} else {
 		mp->mnt_vnodecovered->v_mountedhere = (struct mount *)0;
 		vfs_unlock(mp);
-		free((caddr_t)mp, M_MOUNT);
+		bsd_free((caddr_t)mp, M_MOUNT);
 		vput(vp);
 	}
 	return (error);
@@ -277,7 +277,7 @@ dounmount(mp, flags, p)
 		vfs_unlock(mp);
 		if (mp->mnt_vnodelist.lh_first != NULL)
 			panic("unmount: dangling vnode");
-		free((caddr_t)mp, M_MOUNT);
+		bsd_free((caddr_t)mp, M_MOUNT);
 	}
 	return (error);
 }

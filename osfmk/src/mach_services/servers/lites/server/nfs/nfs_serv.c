@@ -745,7 +745,7 @@ nfsrv_create(nfsd, mrep, md, dpos, cred, nam, mrq)
 			nd.ni_cnd.cn_proc = nfsd->nd_procp;
 			nd.ni_cnd.cn_cred = nfsd->nd_procp->p_ucred;
 			if (error = lookup(&nd)) {
-				free(nd.ni_cnd.cn_pnbuf, M_NAMEI);
+				bsd_free(nd.ni_cnd.cn_pnbuf, M_NAMEI);
 				nfsm_reply(0);
 			}
 			FREE(nd.ni_cnd.cn_pnbuf, M_NAMEI);
@@ -765,7 +765,7 @@ nfsrv_create(nfsd, mrep, md, dpos, cred, nam, mrq)
 		vp = nd.ni_vp;
 	} else {
 		vrele(nd.ni_startdir);
-		free(nd.ni_cnd.cn_pnbuf, M_NAMEI);
+		bsd_free(nd.ni_cnd.cn_pnbuf, M_NAMEI);
 		vp = nd.ni_vp;
 		if (nd.ni_dvp == vp)
 			vrele(nd.ni_dvp);
@@ -820,7 +820,7 @@ nfsmout:
 
 out:
 	vrele(nd.ni_startdir);
-	free(nd.ni_cnd.cn_pnbuf, M_NAMEI);
+	bsd_free(nd.ni_cnd.cn_pnbuf, M_NAMEI);
 	nfsm_reply(0);
 }
 
@@ -1404,7 +1404,7 @@ again:
 	off = (off_t)io.uio_offset;
 	if (error) {
 		vrele(vp);
-		free((caddr_t)rbuf, M_TEMP);
+		bsd_free((caddr_t)rbuf, M_TEMP);
 		nfsm_reply(0);
 	}
 	if (io.uio_resid < fullsiz)
@@ -1592,7 +1592,7 @@ again:
 	off = (u_long)io.uio_offset;
 	if (error) {
 		vrele(vp);
-		free((caddr_t)rbuf, M_TEMP);
+		bsd_free((caddr_t)rbuf, M_TEMP);
 		nfsm_reply(0);
 	}
 	if (io.uio_resid < fullsiz)

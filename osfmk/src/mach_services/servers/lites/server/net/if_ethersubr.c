@@ -594,7 +594,7 @@ ether_addmulti(ifr, ac)
 	 * New address or range; malloc a new multicast record
 	 * and link it into the interface's multicast list.
 	 */
-	enm = (struct ether_multi *)malloc(sizeof(*enm), M_IFMADDR, M_NOWAIT);
+	enm = (struct ether_multi *)bsd_malloc(sizeof(*enm), M_IFMADDR, M_NOWAIT);
 	if (enm == NULL) {
 		splx(s);
 		return (ENOBUFS);
@@ -683,7 +683,7 @@ ether_delmulti(ifr, ac)
 	     p = &(*p)->enm_next)
 		continue;
 	*p = (*p)->enm_next;
-	free(enm, M_IFMADDR);
+	bsd_free(enm, M_IFMADDR);
 	ac->ac_multicnt--;
 	splx(s);
 	/*

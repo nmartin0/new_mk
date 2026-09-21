@@ -164,7 +164,7 @@ ifafree(ifa)
 	if (ifa == NULL)
 		panic("ifafree");
 	if (ifa->ifa_refcnt == 0)
-		free(ifa, M_IFADDR);
+		bsd_free(ifa, M_IFADDR);
 	else
 		ifa->ifa_refcnt--;
 }

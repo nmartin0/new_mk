@@ -898,7 +898,7 @@ kerbauth:
 			error = nfs_getauth(nmp, rep, cred, &auth_type,
 				&auth_str, &auth_len);
 			if (error) {
-				free((caddr_t)rep, M_NFSREQ);
+				bsd_free((caddr_t)rep, M_NFSREQ);
 				m_freem(mrest);
 				return (error);
 			}
@@ -917,7 +917,7 @@ kerbauth:
 	m = nfsm_rpchead(cred, (nmp->nm_flag & NFSMNT_NQNFS), procnum,
 	     auth_type, auth_len, auth_str, mrest, mrest_len, &mheadend, &xid);
 	if (auth_str)
-		free(auth_str, M_TEMP);
+		bsd_free(auth_str, M_TEMP);
 
 	/*
 	 * For stream protocols, insert a Sun RPC Record Mark.
@@ -1019,7 +1019,7 @@ tryagain:
 	dpos = rep->r_dpos;
 	if (error) {
 		m_freem(rep->r_mreq);
-		free((caddr_t)rep, M_NFSREQ);
+		bsd_free((caddr_t)rep, M_NFSREQ);
 		return (error);
 	}
 
@@ -1043,7 +1043,7 @@ tryagain:
 			error = EACCES;
 		m_freem(mrep);
 		m_freem(rep->r_mreq);
-		free((caddr_t)rep, M_NFSREQ);
+		bsd_free((caddr_t)rep, M_NFSREQ);
 		return (error);
 	}
 
@@ -1086,7 +1086,7 @@ tryagain:
 			if (error == ESTALE)
 				cache_purge(vp);
 			m_freem(rep->r_mreq);
-			free((caddr_t)rep, M_NFSREQ);
+			bsd_free((caddr_t)rep, M_NFSREQ);
 			return (error);
 		}
 
@@ -1117,7 +1117,7 @@ tryagain:
 	}
 	m_freem(mrep);
 	m_freem(rep->r_mreq);
-	free((caddr_t)rep, M_NFSREQ);
+	bsd_free((caddr_t)rep, M_NFSREQ);
 	error = EPROTONOSUPPORT;
 nfsmout:
 	return (error);

@@ -112,7 +112,7 @@ namei(ndp)
 		error = copyinstr(ndp->ni_dirp, cnp->cn_pnbuf,
 			    MAXPATHLEN, &ndp->ni_pathlen);
 	if (error) {
-		free(cnp->cn_pnbuf, M_NAMEI);
+		bsd_free(cnp->cn_pnbuf, M_NAMEI);
 		ndp->ni_vp = NULL;
 		return (error);
 	}
@@ -180,13 +180,13 @@ namei(ndp)
 		auio.uio_resid = MAXPATHLEN;
 		if (error = VOP_READLINK(ndp->ni_vp, &auio, cnp->cn_cred)) {
 			if (ndp->ni_pathlen > 1)
-				free(cp, M_NAMEI);
+				bsd_free(cp, M_NAMEI);
 			break;
 		}
 		linklen = MAXPATHLEN - auio.uio_resid;
 		if (linklen + ndp->ni_pathlen >= MAXPATHLEN) {
 			if (ndp->ni_pathlen > 1)
-				free(cp, M_NAMEI);
+				bsd_free(cp, M_NAMEI);
 			error = ENAMETOOLONG;
 			break;
 		}

@@ -242,7 +242,7 @@ nqsrv_getlease(vp, duration, flags, nd, nam, cachablep, frev, cred)
 			nqsrv_locklease(lp);
 			if (!ok) {
 				*lphp = (struct nqm *)
-					malloc(sizeof (struct nqm),
+					bsd_malloc(sizeof (struct nqm),
 						M_NQMHOST, M_WAITOK);
 				bzero((caddr_t)*lphp, sizeof (struct nqm));
 				lph = (*lphp)->lpm_hosts;
@@ -647,7 +647,7 @@ nqnfs_serverd()
 					nfsrv_slpderef(lph->lph_slp);
 				if (++i == len) {
 					if (olphnext) {
-						free((caddr_t)olphnext, M_NQMHOST);
+						bsd_free((caddr_t)olphnext, M_NQMHOST);
 						olphnext = (struct nqm *)0;
 					}
 					if (lphnext) {
@@ -663,7 +663,7 @@ nqnfs_serverd()
 			}
 			FREE((caddr_t)lp, M_NQLEASE);
 			if (olphnext)
-				free((caddr_t)olphnext, M_NQMHOST);
+				bsd_free((caddr_t)olphnext, M_NQMHOST);
 			nfsstats.srvnqnfs_leases--;
 		    }
 		}
@@ -1096,7 +1096,7 @@ if (vp->v_mount->mnt_stat.f_fsid.val[1] != MOUNT_NFS) panic("trash4");
 			(void) dounmount(nmp->nm_mountp, 0, p);
 	    }
 	}
-	free((caddr_t)nmp, M_NFSMNT);
+	bsd_free((caddr_t)nmp, M_NFSMNT);
 	if (error == EWOULDBLOCK)
 		error = 0;
 	return (error);

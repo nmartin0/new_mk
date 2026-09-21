@@ -206,7 +206,7 @@ in_control(so, cmd, data, ifp)
 			panic("in_control");
 		if (ia == (struct in_ifaddr *)0) {
 			oia = (struct in_ifaddr *)
-				malloc(sizeof *oia, M_IFADDR, M_WAITOK);
+				bsd_malloc(sizeof *oia, M_IFADDR, M_WAITOK);
 			if (oia == (struct in_ifaddr *)NULL)
 				return (ENOBUFS);
 			bzero((caddr_t)oia, sizeof *oia);
@@ -544,7 +544,7 @@ in_addmulti(ap, ifp)
 		 * New address; allocate a new multicast record
 		 * and link it into the interface's multicast list.
 		 */
-		inm = (struct in_multi *)malloc(sizeof(*inm),
+		inm = (struct in_multi *)bsd_malloc(sizeof(*inm),
 		    M_IPMADDR, M_NOWAIT);
 		if (inm == NULL) {
 			splx(s);
@@ -555,7 +555,7 @@ in_addmulti(ap, ifp)
 		inm->inm_refcount = 1;
 		IFP_TO_IA(ifp, ia);
 		if (ia == NULL) {
-			free(inm, M_IPMADDR);
+			bsd_free(inm, M_IPMADDR);
 			splx(s);
 			return (NULL);
 		}
@@ -571,7 +571,7 @@ in_addmulti(ap, ifp)
 		if ((ifp->if_ioctl == NULL) ||
 		    (*ifp->if_ioctl)(ifp, SIOCADDMULTI,(caddr_t)&ifr) != 0) {
 			ia->ia_multiaddrs = inm->inm_next;
-			free(inm, M_IPMADDR);
+			bsd_free(inm, M_IPMADDR);
 			splx(s);
 			return (NULL);
 		}
@@ -618,7 +618,7 @@ in_delmulti(inm)
 								inm->inm_addr;
 		(*inm->inm_ifp->if_ioctl)(inm->inm_ifp, SIOCDELMULTI,
 							     (caddr_t)&ifr);
-		free(inm, M_IPMADDR);
+		bsd_free(inm, M_IPMADDR);
 	}
 	splx(s);
 }

@@ -3,59 +3,16 @@
  * injected with -include. Each is being moved into the LITES source.
  */
 
+
 /*
- * BSD kernel malloc arity.
- *
- * LITES's include/sys/malloc.h supplies MALLOC, FREE, bsd_malloc and
- * bsd_free, all resolving to a one-argument malloc, because the server
- * links against a normal allocator rather than a BSD kernel one. But 53
- * call sites across 46 BSD-derived files in server/net, server/netccitt
- * and server/isofs were never converted and still call
- *
- *	malloc(size, type, flags)
- *	free(addr, type)
- *
- * directly. Converting them all would be a large patch against LITES.
- * These macros drop the extra arguments instead, so the existing calls
- * compile unchanged. The parentheses around the function names stop the
- * macro recursing into its own expansion.
- *
- * Both arities work: malloc(n) and malloc(n, M_RTABLE, M_DONTWAIT) both
- * reach the one-argument allocator.
- */
-/*
- * No declaration of malloc or free here, deliberately.
- *
- * LITES declares malloc two different ways itself:
- *
- *   emulator/e_mach_msg_server.c:40   void *malloc(unsigned int);
- *   server/serv/server_defs.h:101     void *malloc(size_t);
- *
- * and its size_t is long unsigned int, so the two disagree. That is
- * harmless as long as each translation unit sees only its own, which
- * is the case -- until a declaration is injected into every file from
- * here, at which point one of the two always conflicts.
- *
- * A third convention exists too: server/ufs/ffs/ffs_inode.c and others
- * declare nothing at all and reach malloc only through the MALLOC and
- * FREE macros in sys/malloc.h, so they need a declaration from
- * somewhere.
- *
- * No prototype can satisfy all three. A K&R declaration with an empty
- * parameter list can: it is compatible with any later prototype, so
- * each file's own declaration still refines it, and files that declare
- * nothing get one. -std=gnu89 accepts it without complaint.
- *
- * The declarations must precede the macros, or the function-like macro
- * rewrites them. The macros are written so that a later prototype
- * survives expansion unchanged: "void *malloc(size_t);" becomes
- * "void *(malloc)(size_t);", which is legal C.
+ * Declarations of malloc and free, K&R-style so that they agree with
+ * every prototype LITES itself writes. Files that reach malloc only
+ * through the MALLOC and FREE macros in sys/malloc.h declare nothing,
+ * and without these compile against an implicit int-returning
+ * declaration. Moved into sys/malloc.h by the next commit.
  */
 extern void *malloc();
 extern void  free();
-
-#define malloc(sz, ...)  (malloc)(sz)
-#define free(p, ...)     (free)(p)
 
 /*
  * cthread_mach_msg.

@@ -220,7 +220,7 @@ loop:
 	}
 	nfsstats.srvcache_misses++;
 	if (numnfsrvcache < desirednfsrvcache) {
-		rp = (struct nfsrvcache *)malloc((u_long)sizeof *rp,
+		rp = (struct nfsrvcache *)bsd_malloc((u_long)sizeof *rp,
 		    M_NFSD, M_WAITOK);
 		bzero((char *)rp, sizeof *rp);
 		numnfsrvcache++;
@@ -339,7 +339,7 @@ nfsrv_cleancache()
 
 	for (rp = nfsrvlruhead; rp; rp = nextrp) {
 		nextrp = rp->rc_next;
-		free(rp, M_NFSD);
+		bsd_free(rp, M_NFSD);
 	}
 	bzero((char *)rheadhtbl, (rheadhash + 1) * sizeof(void *));
 	nfsrvlruhead = NULL;
