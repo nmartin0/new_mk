@@ -46,17 +46,21 @@ LITES_CONFIG	?= STD+WS+osfmach3+ext2fs
 CONFIG		?=${LITES_${TARGET_MACHINE}_CONFIG:U${LITES_CONFIG:UDEFAULT}}
 
 .if defined (PROFILING)
-_CONFIG_	= ${CONFIG:S/+gprof//}+gprof
+# Not _CONFIG_, as Helander named it: this tree's osf.std.mk defines
+# _CONFIG_ as the config PROGRAM (_CONFIG_=${_${_CCTYPE_}_CONFIG_}),
+# and since the rules are included after this, its definition won in
+# every recipe, naming a directory after the program's path.
+LITES_CONFIGNAME = ${CONFIG:S/+gprof//}+gprof
 .else
-_CONFIG_	= ${CONFIG}
+LITES_CONFIGNAME = ${CONFIG}
 .endif
 
 LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
 .if exists( ${LITES_TOP}Makefile-version)
 .include "${LITES_TOP}Makefile-version"
 .endif
-VMUNIX		= startup.${VERSION}.${_CONFIG_}
-OTHERS		= ../${_CONFIG_}/Makefile
+VMUNIX		= startup.${VERSION}.${LITES_CONFIGNAME}
+OTHERS		= ../${LITES_CONFIGNAME}/Makefile
 
 #
 # LITES's configuration, run in ODE's export pass (FIRST) so that
@@ -152,39 +156,25 @@ lites_configured: ${LITES_MASTER} conf/MASTER conf/files conf/${target_cpu}/file
 	touch ${.TARGET}
 
 
-${_CONFIG_}:	${MASTER} ${MASTER_TM} \
-		${MASTER_LOCAL} ${MASTER_TM_LOCAL} 
-	@echo "[ generating ${.TARGET} from {,${target_cpu}/}MASTER{,.local} ]"
-	@doconf="`wh -q doconf`"; \
-	echo "${.TARGET}: $${doconf}" >> ${.TARGET}.d; \
-	$${doconf} ${_CONFIG_}\
-		${${MASTER}:P}\
-		${${MASTER_TM}:P}\
-		${${MASTER_LOCAL}:P}\
-		${${MASTER_TM_LOCAL}:P} >${_CONFIG_}.tmp
-	@-if [ -s ${_CONFIG_}.tmp ]; then \
-	    if [ -f ${_CONFIG_} ]; then \
-		diff ${_CONFIG_} ${_CONFIG_}.tmp; \
-		mv ${_CONFIG_} ${_CONFIG_}.old; \
-	    fi; \
-	    mv ${_CONFIG_}.tmp ${_CONFIG_}; \
-	else \
-	    ${RM} -f ${_CONFIG_}.tmp; \
-	fi
-
-../${_CONFIG_}/Makefile:	${_CONFIG_} \
-			files \
-			${target_cpu}/files \
-			template.mk \
-			${target_cpu}/template.mk 
-	@echo "[ configuring ${_CONFIG_} ]"
-	@-if [ -d ../${_CONFIG_} ]; then true; else mkdir ../${_CONFIG_}; fi
-	@config="`wh -q config`"; \
-	echo "${.TARGET}: $${config}" >> ${.TARGET}.d; \
-	$${config} `genpath -I.` -c . ${_CONFIG_}
-	@${RM} -f ../${_CONFIG_}/Makefile
-	@ln -s Makefile.internal ../${_CONFIG_}/Makefile
-	@echo ${_CONFIG_} >../${_CONFIG_}/vers.config
-	@${RM} -f ../${_CONFIG_}/${VMUNIX}
+#
+# The configured server's Makefile. The kernel's pattern, and Helander's:
+# a template, template.mk, whose markers are filled with this
+# configuration's definitions. For the kernel, OSF's config program
+# fills them; here filltemplate.sh does, reading the Filelist that the
+# export-pass step above wrote from the maintained configuration.
+# Helander's rule ran doconf, which this tree lacks, then config, which
+# reads this directory's stale files list; neither is used.
+#
+../${LITES_CONFIGNAME}/Makefile: lites_configured template.mk \
+			${target_cpu}/template.mk filltemplate.sh
+	@echo "[ configuring ${LITES_CONFIGNAME} from the maintained Filelist ]"
+	@-if [ -d ../${LITES_CONFIGNAME} ]; then true; else mkdir ../${LITES_CONFIGNAME}; fi
+	/bin/sh ${filltemplate.sh:P} Filelist ${template.mk:P:H:H} \
+	    ${template.mk:P} ${${target_cpu}/template.mk:P} . ../${LITES_CONFIGNAME} \
+	    > ../${LITES_CONFIGNAME}/Makefile.internal
+	@${RM} -f ../${LITES_CONFIGNAME}/Makefile
+	@ln -s Makefile.internal ../${LITES_CONFIGNAME}/Makefile
+	@echo ${LITES_CONFIGNAME} >../${LITES_CONFIGNAME}/vers.config
+	@${RM} -f ../${LITES_CONFIGNAME}/${VMUNIX}
 
 
