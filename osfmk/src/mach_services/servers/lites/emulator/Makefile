@@ -159,17 +159,48 @@ ${SFILES:.o=.S}: $${.TARGET:.S=.s}
 ${SFILES}: $${.TARGET:.o=.S}
 	${_CC_} -DASSEMBLER ${_CCFLAGS_} -c ${.TARGET:.o=.S}
 
-BASE="`./emulator_base`"
+#
+# Unquoted: emulator_base prints several ld options, which must reach
+# ld as separate words. Quoted -- as vendored, for an older
+# emulator_base that printed one address -- ld receives "-e" followed
+# by the whole string, sets a nonsense entry symbol, and links at its
+# default address without complaint.
+#
+BASE=`./emulator_base`
 
-I386_LDFLAGS	= -z -T ${BASE}
-PC532_LDFLAGS	= -Ttext ${BASE}
-PARISC_LDFLAGS	= -Wl,-x -Wl,-N -Wl,-u,'$$START$$' -Wl,-R,${BASE}
+#
+# The emulator links with ld directly, as the GNU route does:
+# emulator_base prints ld's own options -- "-e __start -qmagic -static
+# -Ttext 0xa0001000" -- which the gcc driver would reject. So the link
+# does not use ${_LDFLAGS_}, which in this tree carries gcc-driver
+# options such as -nostartfiles, nor the old -z -T ${BASE} wrapping,
+# written for an emulator_base that printed only an address. Each flag
+# is one tools/lites/build-lites.sh documents:
+#
+#   -m elf_i386        a 32-bit link on a 64-bit host's ld
+#   -z muldefs         LITES defines its own printf, vsprintf, sprintf
+#   ${TARGET_LDFLAGS}  the configured -e __start, from Makevar
+#   the libraries      liblites; cthreads (the GNU route's -lthreads);
+#                      then mach_sa and sa_mach, which reference each
+#                      other, so mach_sa is named twice
+#   no --defsym        unlike the server: ecrt0.c defines __start
+#
+# LIBTHREADS, LIBMACH_SA and LIBGCC, which the vendor rule used, are
+# defined nowhere in this tree's makedefs.
+#
+# The result stays in the object tree, where boot-ide.sh finds
+# bootstrap and default_pager (D29). The vendor rule also copied it to
+# ${EXPORTBASE}/special/, POE's convention; no OSF component copies a
+# program into the export tree.
+#
+EMULATOR_LDFLAGS = -m elf_i386 -z muldefs
+EMULATOR_LIBS	= -L${EXPORTBASE}/lib -llites -lcthreads -lmach_sa -lsa_mach -lmach_sa
 
 ${EMULATOR}: ${EMULATOR_OFILES} emulator_base
 	@echo emulator base is \"${BASE}\"
-	${_LD_} -o ${.TARGET}.out ${_LDFLAGS_} ${EMULATOR_OFILES} ${_LIBS_}  && \
+	${_LD_} -o ${.TARGET}.out ${BASE} ${EMULATOR_LDFLAGS} ${TARGET_LDFLAGS} \
+	    ${EMULATOR_OFILES} ${EMULATOR_LIBS} && \
 	${MV} ${.TARGET}.out ${.TARGET}
-	${CP} ${EMULATOR} ${EXPORTBASE}/special/${EMULATOR}
 
 # Some dependencies
 
