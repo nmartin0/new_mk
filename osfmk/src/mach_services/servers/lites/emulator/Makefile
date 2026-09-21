@@ -162,7 +162,7 @@ BSD_FILES = bsd_1.h serv/bsd_1_user.c
 
 $(BSD_FILES): bsd_types_gen.h serv/bsd_1.defs
 	-$(MAKE_SERV)
-	$(MIG) $(_MIGFLAGS_) ${DEFINES} -UKERNEL \
+	${_MIG_} $(_MIGFLAGS_) ${DEFINES} -UKERNEL \
 		-header bsd_1.h \
 		-user serv/bsd_1_user.c \
 		-server /dev/null \
@@ -175,7 +175,7 @@ SIG_FILES = signal_server.h serv/signal_server.c
 
 $(SIG_FILES): bsd_types_gen.h serv/signal.defs
 	-$(MAKE_SERV)
-	$(MIG) $(_MIGFLAGS_) ${DEFINES} -UKERNEL \
+	${_MIG_} $(_MIGFLAGS_) ${DEFINES} -UKERNEL \
 		-sheader signal_server.h \
 		-user /dev/null \
 		-server serv/signal_server.c \
@@ -191,7 +191,7 @@ signal_server.o: serv/signal_server.c
 #
 
 mach_user.c: mach/mach.defs
-	$(MIG) $(_MIGFLAGS_) -DEMULATOR \
+	${_MIG_} $(_MIGFLAGS_) -DEMULATOR \
 		-header mach_interface.h \
 		-user mach_user.c \
 		-server /dev/null \
@@ -199,7 +199,7 @@ mach_user.c: mach/mach.defs
 
 # Generate a special version of task_suspend
 emul_mach_user.c: emul_mach.defs
-	${MIG} ${_MIGFLAGS_} \
+	${_MIG_} ${_MIGFLAGS_} \
 		-header emul_mach_interface.h \
 		-user emul_mach_user.c \
 		-server /dev/null \
