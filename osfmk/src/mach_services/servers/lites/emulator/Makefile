@@ -107,7 +107,7 @@ COMMON_OFILES	= ecrt0.o e_mig_support.o emul_generic.o \
 	e_machinedep.o emul_misc_asm.o \
 	e_bsd.o e_43ux.o bsd_1_user.o \
 	emul_mach_user.o e_signal.o signal_server.o e_uname.o \
-	e_mapped_time.o e_readwrite.o e_sysvipc.o \
+	e_mapped_time.o e_sysvipc.o \
 	${${target_cpu}_COMMON_OFILES}
 
 testprog_OFILES	= ${COMMON_OFILES} testprog.o libsys_support.o
@@ -134,7 +134,7 @@ DEP_OFILES	= e_mig_support.o emul_generic.o error_codes.o emul_init.o \
 	e_sysv.o e_linux_trampoline.o e_exception.o e_mach_msg_server.o \
 	e_cmu_43ux_sysent.o zprintbsd.o process_self.o \
 	testprog.o libsys_support.o e_signal.o e_bnr.o e_stat.o \
-	e_uname.o e_mapped_time.o e_readwrite.o \
+	e_uname.o e_mapped_time.o \
 	e_hpbsd_sysent.o e_hpbsd.o e_sysvipc.o \
 	LRbsd_1_user.o LRmach_user.o
 
