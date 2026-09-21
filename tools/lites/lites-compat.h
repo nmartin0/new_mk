@@ -5,16 +5,6 @@
 
 
 /*
- * Declarations of malloc and free, K&R-style so that they agree with
- * every prototype LITES itself writes. Files that reach malloc only
- * through the MALLOC and FREE macros in sys/malloc.h declare nothing,
- * and without these compile against an implicit int-returning
- * declaration. Moved into sys/malloc.h by the next commit.
- */
-extern void *malloc();
-extern void  free();
-
-/*
  * cthread_mach_msg.
  *
  * LITES supplies its own implementation in server/serv/cprocs.c with

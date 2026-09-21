@@ -265,6 +265,18 @@ extern zone_t		zone_M_LAST;
 	(space) = (cast)zalloc(type)
 #define FREE(addr, type) zfree(type, (caddr_t)(addr))
 #else
+/*
+ * This arm maps the BSD allocator onto the server's own one-argument
+ * malloc and free, and so must declare them: files that reach them
+ * only through MALLOC and FREE declare nothing themselves. K&R form,
+ * because LITES writes two different prototypes for malloc elsewhere
+ * (void *malloc(unsigned int) in emulator/e_mach_msg_server.c, void
+ * *malloc(size_t) in server/serv/server_defs.h) and an empty parameter
+ * list is compatible with both.
+ */
+extern void *malloc();
+extern void free();
+
 #define	MALLOC(space, cast, size, type, flags) \
 	(space) = (cast)malloc(size)
 #define FREE(addr, type) free((caddr_t)(addr))
