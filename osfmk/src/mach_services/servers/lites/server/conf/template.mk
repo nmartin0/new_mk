@@ -305,40 +305,19 @@ $(SIG_FILES): bsd_types_gen.h serv/signal.defs
 # The kern/* deps are here so that makesyscalls is executed only once.
 ${OBJS} kern/init_sysent.c kern/syscalls.c : sys/syscall.h
 ${OBJS} ${BSD_1_FILES} ${SIG_FILES} : bsd_types_gen.h
-xxx_bsd_types_gen.c : vnode_if.h
-xxx_bsd_types_gen.c : sys/syscall.h
-${OBJS} vnode_if.c : vnode_if.h
+${OBJS} : vnode_if.h
 
-sys/syscall.h: kern/makesyscalls.sh kern/syscalls.master
-	-rm -rf kern sys libjacket libsys
-	-mkdir sys kern libjacket libsys
-	cd kern;/bin/sh ${kern/makesyscalls.sh:P} ${kern/syscalls.master:P}
-
-# VFS interface
-vnode_if.h: kern/vnode_if.sh kern/vnode_if.src
-	-rm -f vnode_if.h vnode_if.c
-	/bin/sh ${kern/vnode_if.sh:P} ${kern/vnode_if.src:P} gawk
+#
+# vnode_if.h, sys/syscall.h and bsd_types_gen.h are generated once, by
+# LITES's export-pass configuration step, and published to
+# ${EXPORTBASE}/lites/server/ and ${EXPORTBASE}/lites/sys/; the
+# generated sources kern/init_sysent.c, kern/syscalls.c and vnode_if.c
+# are copied into this directory by filltemplate.sh. This template used
+# to generate all of them itself: makesyscalls.sh a second time,
+# vnode_if.sh with gawk, and bsd_types_gen by running a host program.
+#
 
 
-bsd_types_gen_CCTYPE	= host
-HOST_CFLAGS		= ${DEFINES}
-HOST_LDFLAGS		= ${LDFLAGS}
-
-# -P
-xxx_bsd_types_gen.c: serv/bsd_types_gen.c
-	${ansi_CPP} ${_CCFLAGS_} ${serv/bsd_types_gen.c:P} > xxx_bsd_types_gen.c
-	cat /dev/null >> bsd_types_gen.d
-	sed 's/^bsd_types_gen\.o/xxx_bsd_types_gen.c/' \
-			bsd_types_gen.d > xxx_bsd_types_gen.c.d
-	${RM} bsd_types_gen.d
-
-bsd_types_gen: xxx_bsd_types_gen.c
-	( LPATH="${_host_LPATH_}"; export LPATH; \
-	${HOST_CC} ${_host_FLAGS_} -o bsd_types_gen.X xxx_bsd_types_gen.c)
-	${MV} bsd_types_gen.X bsd_types_gen
-
-bsd_types_gen.h : bsd_types_gen
-	./bsd_types_gen > bsd_types_gen.h
 
 
 ALWAYS:
