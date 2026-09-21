@@ -236,7 +236,7 @@ emulator_base_LIBS	=
 # from the cpp output.
 
 xxx_emulator_base.c: emulator_base.c
-	${ansi_CPP} -P ${_CCFLAGS_} -D${TARGET_MACHINE} -DTARGET_${TARGET_MACHINE} ${emulator_base.c:P} > xxx_emulator_base.c
+	${ansi_CPP} -P ${_CCFLAGS_} -D${TARGET_MACHINE} -DTARGET_${target_cpu} ${emulator_base.c:P} > xxx_emulator_base.c
 	cat /dev/null >> emulator_base.d
 	sed 's/emulator_base\.o/xxx_emulator_base.c/' \
 			emulator_base.d > xxx_emulator_base.c.d
