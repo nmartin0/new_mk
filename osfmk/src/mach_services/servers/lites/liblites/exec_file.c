@@ -270,7 +270,13 @@ void guess_binary_type_from_header(
 	/* 6 bits of flags, 10 bits of mid, and 16 bits magic */
 	if ((tmp & 0xffff) == ZMAGIC) {
 		*bt = BT_NETBSD;
-		switch ((tmp >> 16) && 0x3ff) {
+		/*
+		 * The machine id, as NetBSD's N_GETMID extracts it. Utah wrote
+		 * && here, which gives only 0 or 1, so neither case matched and
+		 * every NetBSD binary's cpu type stayed unknown -- accepted
+		 * whatever machine it was built for (L47).
+		 */
+		switch ((tmp >> 16) & 0x3ff) {
 		      case 134:		/* 0b018600 */
 			*ct = CPU_TYPE_I386;
 			return;

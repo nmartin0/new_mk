@@ -212,8 +212,13 @@ BASE=`./emulator_base`
 #
 EMULATOR_LDFLAGS = -m elf_i386 -z muldefs
 EMULATOR_LIBS	= -L${EXPORTBASE}/lib -llites -lcthreads -lmach_sa -lsa_mach -lmach_sa
+# The libraries as files, so that relinking follows them: -l names them
+# only to the linker, and without this a rebuilt liblites left the
+# emulator and server linked against the old one (L47).
+EMULATOR_LIBDEPS = ${EXPORTBASE}/lib/liblites.a ${EXPORTBASE}/lib/libcthreads.a \
+	${EXPORTBASE}/lib/libmach_sa.a ${EXPORTBASE}/lib/libsa_mach.a
 
-${EMULATOR}: ${EMULATOR_OFILES} emulator_base
+${EMULATOR}: ${EMULATOR_OFILES} emulator_base ${EMULATOR_LIBDEPS}
 	@echo emulator base is \"${BASE}\"
 	${_LD_} -o ${.TARGET}.out ${BASE} ${EMULATOR_LDFLAGS} ${TARGET_LDFLAGS} \
 	    ${EMULATOR_OFILES} ${EMULATOR_LIBS} && \

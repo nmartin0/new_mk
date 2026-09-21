@@ -209,7 +209,15 @@ NEWVERS_DEPS = \
 
 
 
-${VMUNIX} : ${PRELDDEPS} ${LDOBJS} ${LDDEPS} \
+# The libraries SERVER_LIBS links, as files, so that relinking follows
+# them: -l names them only to the linker, and without this a rebuilt
+# liblites left the server linked against the old one (L47). Defined
+# here, above the rule, because make expands a rule's prerequisites
+# when it reads the rule.
+SERVER_LIBDEPS	= ${EXPORTBASE}/lib/liblites.a ${EXPORTBASE}/lib/libcthreads.a \
+	${EXPORTBASE}/lib/libmach_sa.a ${EXPORTBASE}/lib/libsa_mach.a
+
+${VMUNIX} : ${PRELDDEPS} ${LDOBJS} ${LDDEPS} ${SERVER_LIBDEPS} \
 		${CC_DEPS_NORMAL} ${NEWVERS_DEPS} LINKSERVER
 
 # The relink rule allows you to relink the server without checking
