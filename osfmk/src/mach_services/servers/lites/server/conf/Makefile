@@ -85,8 +85,17 @@ OTHERS		= ../${_CONFIG_}/Makefile
 # sys/eproto.h, from kern/syscalls.master by kern/makesyscalls.sh,
 # published to ${EXPORTBASE}/lites/sys/ -- where the GNU route keeps
 # them too, in its include/sys/. Helander's template.mk generates both
-# in the server's own build, before anything that needs them. The
-# single bsd_types_gen.h, which needs both, follows.
+# in the server's own build, before anything that needs them.
+#
+# Then the single bsd_types_gen.h, which needs both. It is made the
+# way OSFMK 7.3's own i386 kernel makes assym, and the way the GNU route
+# makes this very header: gensym.awk turns bsd_types_gen.sym into C
+# whose asm("..." : : "i" (expr)) statements make the compiler write
+# each constant into its assembler output, which is compiled with -S
+# and harvested with sed. OSF rewrote i386's genassym from a program
+# that is run (6.1) to exactly this (7.3). Helander's
+# serv/bsd_types_gen.c is the older, run-a-program kind, and is not
+# used.
 #
 VPATH		= ${LITES_TOP}
 EXPINC_TARGETS	= lites_configured
@@ -96,8 +105,13 @@ LITES_SYS_EXPDIR = ${EXPORTBASE}/lites/sys
 # vnode_if.sh takes the awk to use as an argument, and says it needs
 # "nawk extensions and gawk's toupper"; the GNU route passes nawk.
 LITES_AWK	?= nawk
+GENSYM_CFLAGS	= -DKERNEL -DMACH -DLITES -Ulinux
 ansi_CPP	?= ${ANSI_CC} -E
-INCFLAGS	= -I${LITES_TOP}server
+# LITES's own headers are searched in its source include/, before its
+# server/, as the GNU route searches them: include/sys/Makefile exports
+# only 75 of the 99 headers there, and the rest -- assert.h among them
+# -- are needed here. liblites and the emulator already search both.
+INCFLAGS	= -I${LITES_TOP}include -I${LITES_TOP}server
 INCDIRS		:= -I. -I${EXPORTBASE}/lites ${INCDIRS}
 
 .include <${RULES_MK}>
@@ -123,6 +137,14 @@ lites_configured: ${LITES_MASTER} conf/MASTER conf/files conf/${target_cpu}/file
 	${RM} -f vnode_if.h vnode_if.c && \
 	/bin/sh $$top/server/kern/vnode_if.sh $$top/server/kern/vnode_if.src \
 	    "${LITES_AWK}"
+	top=${${LITES_MASTER}:P:H:H:H}; \
+	${AWK} -f $$top/conf/gensym.awk $$top/server/serv/bsd_types_gen.sym \
+	    > bsd_types_gen.symc
+	${_CC_} -S ${_CCFLAGS_} ${GENSYM_CFLAGS} \
+	    `sed -n 's/^TARGET_CFLAGS *+= *//p' Makevar` \
+	    -x c -o bsd_types_gen.symc.o bsd_types_gen.symc
+	sed <bsd_types_gen.symc.o -e 's/^[^*].*$$//' | \
+	    sed -e 's/^[*]/#define/' -e 's/mAgIc[^-0-9]*//' > bsd_types_gen.h
 	${MAKEPATH} ${LITES_SYS_EXPDIR}/.
 	${CP} sys/syscall.h sys/sysproto.h sys/eproto.h ${LITES_SYS_EXPDIR}/
 	${MAKEPATH} ${LITES_SERVER_EXPDIR}/.
