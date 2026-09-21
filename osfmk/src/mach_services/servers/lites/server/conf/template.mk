@@ -304,6 +304,10 @@ ${BOBJS}: $${$${.TARGET}_SOURCE}
 bsd_server.o: bsd_1_server.c bsd_types_gen.h 
 
 bsd_server_side.o: bsd_types_gen.h bsd_1_server.h
+# serv_syscalls.c includes bsd_1_server.h as well. Undeclared, make
+# could compile it before MIG had written that header -- the failure
+# the GNU route answers by running make twice. Declared, one pass does.
+serv_syscalls.o: bsd_1_server.h
 
 BSD_1_FILES = bsd_1_server.c
 
