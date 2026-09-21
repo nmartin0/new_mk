@@ -129,6 +129,7 @@ DEP_OFILES	= e_mig_support.o emul_generic.o error_codes.o emul_init.o \
 	e_hpbsd_sysent.o e_hpbsd.o e_sysvipc.o \
 	LRbsd_1_user.o LRmach_user.o
 
+ansi_CPP	?= ${ANSI_CC} -E
 .include <${RULES_MK}>
 
 BASE="`./emulator_base`"

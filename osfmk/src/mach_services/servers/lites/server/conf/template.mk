@@ -163,6 +163,7 @@ LDDEPS=${LDDEPS_PREFIX}
 
 %MACHDEP
 
+ansi_CPP	?= ${ANSI_CC} -E
 .include <${RULES_MK}>
 
 _CC_GENINC_=-I.

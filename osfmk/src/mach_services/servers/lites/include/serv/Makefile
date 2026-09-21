@@ -69,6 +69,7 @@ bsd_types_gen_OFILES	= xxx_bsd_types_gen.o
 bsd_types_gen_CCTYPE	= host
 xxx_bsd_types_gen.o_CCTYPE	= host
 
+ansi_CPP	?= ${ANSI_CC} -E
 .include <${RULES_MK}>
 
 xxx_bsd_types_gen.c : bsd_types_gen.c
