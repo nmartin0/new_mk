@@ -45,8 +45,19 @@
 
 #if OSFMACH3
 
-/* These are missing from cthreads */
-mach_error_t cthread_mach_msg(
+/*
+ * These are missing from cthreads.
+ *
+ * OSFMK's cthreads.h does declare a cthread_mach_msg, but collapsed
+ * into one struct argument, and its libcthreads defines none. So this
+ * private nine-argument version must not take the library's name, or
+ * the two prototypes clash: it is ux_cthread_mach_msg, called only
+ * from the OSFMACH3 arms below. The #else arms keep calling the
+ * library's, which is right for the kernels those arms target.
+ * cthread_msg_busy and cthread_msg_active match OSFMK's declarations
+ * exactly and keep their names.
+ */
+mach_error_t ux_cthread_mach_msg(
 	mach_msg_header_t *msg,
 	mach_msg_option_t option,
 	mach_msg_size_t size,
@@ -252,7 +263,7 @@ void ux_server_loop()
 
 	do {
 #if OSFMACH3
-	    ret = cthread_mach_msg(request_ptr,
+	    ret = ux_cthread_mach_msg(request_ptr,
 	MACH_RCV_MSG | MACH_RCV_TRAILER_ELEMENTS(MACH_RCV_TRAILER_SEQNO),
 				   0,
 				   sizeof msg_buffer_1 - MAX_TRAILER_SIZE,
@@ -299,7 +310,7 @@ void ux_server_loop()
 		}
 
 #if OSFMACH3
-		ret = cthread_mach_msg(&reply_ptr->Head,
+		ret = ux_cthread_mach_msg(&reply_ptr->Head,
   MACH_SEND_MSG|MACH_RCV_MSG|MACH_RCV_TRAILER_ELEMENTS(MACH_RCV_TRAILER_SEQNO),
 				       reply_ptr->Head.msgh_size,
 				       sizeof msg_buffer_2 - MAX_TRAILER_SIZE,
