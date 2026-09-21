@@ -211,10 +211,11 @@ bbc_gettime(
 	mon = hexdectodec(rtclk.rtc_mon);
 	yr = hexdectodec(rtclk.rtc_yr);
 	/*
-	 * A full year, as writetodc() uses: yeartoday() applies the whole
-	 * Gregorian rule, including the 400-year one, which is wrong for
-	 * years counted from 1900. Given 100 for 2000 it returned 365, so
-	 * every date from March 2000 on read exactly one day early.
+	 * A full year, as bbc_settime() uses: yeartoday() applies the whole
+	 * Gregorian rule, including the 400-year one -- since OSF's 1992
+	 * revision 2.6.1.2 -- which is wrong for years counted from 1900.
+	 * Given 100 for 2000 it returned 365, so every date from March 2000
+	 * on read exactly one day early.
 	 */
 	yr = (yr < 70) ? yr+2000 : yr+1900;
 	n = sec + 60 * min + 3600 * hr;
@@ -275,7 +276,18 @@ bbc_settime(
 	rtclk.rtc_dow = (n + 4) % 7;  /* 1/1/70 is Thursday */
 	for (j = 1970; n >= (i = yeartoday(j)); j++)
 		n -= i;
-	rtclk.rtc_yr = dectohexdec(j - 1900);
+	/*
+	 * The year register holds two BCD digits, 00-99, and bbc_gettime()
+	 * reads 00-69 as 20xx. OSF stored j - 1900, which from 2000 on is 100
+	 * or more and is not valid BCD: 126, for 2026, became 0xC6.
+	 *
+	 * j % 100 is Apple's fix, as Apple wrote it in Rhapsody (kernel-7,
+	 * bsd/dev/i386/rtc.c, 1999) and in XNU (osfmk/i386/AT386/bbclock.c,
+	 * xnu-123.5 through xnu-792). Credit, not a licence: one expression,
+	 * below any threshold of copyright, so it carries no APSL notice; the
+	 * commit that adopted it records why.
+	 */
+	rtclk.rtc_yr = dectohexdec(j % 100);
 	if (yeartoday(j) == 366)
 		month[1] = 29;
 	for (i = 0; n >= month[i]; i++)
