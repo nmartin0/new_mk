@@ -33,8 +33,8 @@ sh build/mksandbox.sh                 # once: prepare the sandbox
 sh build/ode.sh MAKEFILE_PASS=FIRST   # export headers, run MIG
 
 # The libraries. NOT optional, and not only for LITES: without them
-# $MK_BUILD/export/at386/lib does not exist and build-lites.sh stops at
-# "missing: .../lib" before it compiles anything.
+# $MK_BUILD/export/at386/lib does not exist and LITES, the last step,
+# cannot link.
 for l in libcthreads libsa_mach libmach libmach_maxonstack libmach_sa; do
 	sh build/ode.sh -here mach_services/lib/$l
 done
@@ -43,6 +43,7 @@ sh build/ode.sh -here file_systems
 sh build/ode.sh -here bootstrap        # the bootstrap task
 sh build/ode.sh -here default_pager    # boot-ide.sh requires it
 sh build/ode.sh -here mach_kernel MACH_KERNEL_CONFIG=PRODUCTION
+sh build/ode.sh -here mach_services/servers/lites   # server, emulator, liblites
 ```
 
 `libmach_sa` is easy to miss and is **not** in `build_world`'s list,
@@ -79,8 +80,6 @@ give the guest a serial console and writes it to `/tmp/console.log`.
 The whole sequence, after the build above:
 
 ```sh
-sh tools/lites/build-lites.sh ~/lites-build
-
 MIRROR=file://$HOME/mach_stuff/netbsd-1.0-i386/binary \
 	sh tools/mkroot-netbsd.sh          # /tmp/root.img, ext2, NetBSD 1.0
 

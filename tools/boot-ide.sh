@@ -49,13 +49,12 @@ HERE=$(cd "$(dirname "$0")" && pwd)
 K="$MK_BUILD/obj/at386/mach_kernel/PRODUCTION/mach_kernel.PRODUCTION"
 BOOTSTRAP="$MK_BUILD/obj/at386/bootstrap/bootstrap"
 PAGER="$MK_BUILD/obj/at386/default_pager/default_pager"
-# LITES_BUILD is the build directory given to build-lites.sh. It was
-# hard-coded to ~/lites-build, which is only right if you passed exactly
-# that, and the failure when you did not was a missing-file message that
-# said nothing about which build produced the file.
-LITES_BUILD="${LITES_BUILD:-$HOME/lites-build}"
-LITES="$LITES_BUILD/obj/server/startup.Lites.1.1.u3.STD+WS+osfmach3+ext2fs"
-EMULATOR="$LITES_BUILD/obj/emulator/emulator.Lites.1.1.u3"
+# LITES is built by the tree's own ODE rules, like bootstrap and
+# default_pager, and its binaries are found in the same object tree
+# (D29): the server in its configured directory, the emulator in its own.
+LITES_OBJ="$MK_BUILD/obj/at386/mach_services/servers/lites"
+LITES="$LITES_OBJ/server/STD+WS+osfmach3+ext2fs/startup.Lites.1.1.u3.STD+WS+osfmach3+ext2fs"
+EMULATOR="$LITES_OBJ/emulator/emulator.Lites.1.1.u3"
 
 SERVERS=/tmp/servers.img
 ROOT=/tmp/root.img
@@ -91,8 +90,7 @@ ODE_CMD="sh build/ode.sh -here"
 for f in "$LITES" "$EMULATOR"; do
 	[ -r "$f" ] && continue
 	echo "missing: $f" >&2
-	echo "  produced by: sh tools/lites/build-lites.sh \\" >&2
-	echo "                 <lites-src> $LITES_BUILD" >&2
+	echo "  produced by: sh build/ode.sh -here mach_services/servers/lites" >&2
 	if [ -r "$LITES" ] || [ -r "$EMULATOR" ]; then
 		echo >&2
 		echo "  One of the two is present, so that build failed part" >&2

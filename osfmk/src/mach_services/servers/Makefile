@@ -26,8 +26,8 @@
 # can talk to the machid server.  The actual server source is in the
 # Hosted Mach source tree, because currently it has Host OS dependencies.
 # Those dependencies could actually be removed fairly easily.
-EXPINC_SUBDIRS		= netname machid
+EXPINC_SUBDIRS		= netname machid lites
 
-SUBDIRS			= netname
+SUBDIRS			= netname lites
 
 .include <${RULES_MK}>
