@@ -343,16 +343,20 @@ file			libkern/scanc.c
 file			libkern/skpc.c
 file			libkern/mach_error.c
 file			libkern/queue.c
-#
-# The 64-bit division runtime. gcc emits calls to __divdi3, __udivdi3,
-# __moddi3 and __umoddi3 for quad division -- ext2_balloc.c,
-# ext2_lookup.c and ext2_vfsops.c all divide 64-bit offsets -- and they
-# are the compiler's runtime, not the C library's. Building these means
-# the link needs no libgcc.a and so no compiler-supplied file at all.
-#
-# qdivrem.c was always here and was never built, because nothing
-# referenced it: LITES shipped the long division and not the four thin
-# wrappers that call it. quaddiv.c is those wrappers.
+/*
+ * The 64-bit division runtime. gcc emits calls to __divdi3, __udivdi3,
+ * __moddi3 and __umoddi3 for quad division -- ext2_balloc.c,
+ * ext2_lookup.c and ext2_vfsops.c all divide 64-bit offsets -- and they
+ * are the compiler's runtime, not the C library's. Building these means
+ * the link needs no libgcc.a and so no compiler-supplied file at all.
+ *
+ * qdivrem.c was always here and was never built, because nothing
+ * referenced it: LITES shipped the long division and not the four thin
+ * wrappers that call it. quaddiv.c is those wrappers.
+ *
+ * A C comment, as this file's own header is: the file is read through
+ * cpp, and a line beginning "# The" is an invalid directive to it.
+ */
 file			libkern/qdivrem.c
 file			libkern/quaddiv.c
 
