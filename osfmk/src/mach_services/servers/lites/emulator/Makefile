@@ -120,10 +120,26 @@ ns532_EMULATOR_OFILES	= e_cmu_43ux_sysent.o e_lite_sysent.o
 parisc_EMULATOR_OFILES	= e_hpbsd_sysent.o e_hpbsd.o e_lite_sysent.o \
 	LRbsd_1_user.o LRmach_user.o
 
-EMULATOR_OFILES	= ${COMMON_OFILES} emul_vector.o emul_exec.o \
-	e_trampoline.o e_exception.o e_mach_msg_server.o \
-	e_stat.o e_bnr.o \
-	${${target_cpu}_EMULATOR_OFILES}
+#
+# The emulator's objects, in the order of Utah's maintained list,
+# OBJFILES in emulator/Makerules, which the GNU route links. The set is
+# the one Helander's lists produce (COMMON_OFILES and
+# ${target_cpu}_EMULATOR_OFILES), less the dead e_readwrite.o; only the
+# order is Utah's. Order matters: the same objects linked in
+# Helander's order give different .text, .data and .rodata, and in
+# this order give the GNU build's exactly. COMMON_OFILES stays for
+# testprog and runit.
+#
+i386_LINK_OFILES = e_linux.o e_sysv.o e_exception.o e_signal.o \
+	e_machinedep.o e_linux_trampoline.o e_linux_sysent.o \
+	e_isc4_sysent.o e_cmu_43ux_sysent.o
+EMULATOR_OFILES	= ecrt0.o e_mig_support.o emul_generic.o error_codes.o \
+	emul_init.o emul_mapped.o emul_misc_asm.o \
+	e_bsd.o e_43ux.o bsd_1_user.o emul_mach_user.o \
+	e_mach_msg_server.o e_stat.o e_bnr.o emul_exec.o \
+	signal_server.o e_uname.o e_mapped_time.o e_sysvipc.o \
+	${${target_cpu}_LINK_OFILES} \
+	e_lite_sysent.o emul_vector.o e_trampoline.o
 
 # For dependencies
 DEP_OFILES	= e_mig_support.o emul_generic.o error_codes.o emul_init.o \
