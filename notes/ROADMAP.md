@@ -110,7 +110,8 @@ Every item here has its diagnosis already recorded in the repository's
 | **L45** root cannot be unmounted at shutdown | The three held buffers are ext2's pinned group-descriptor and bitmap buffers, not unwritten data. No data is lost; the filesystem is left marked not clean. |
 | **L46** console output interleaves between writers | Distinct mechanism from L43. Note the project's own correction: the earlier "two claimants" explanation was attributed to the wrong cause. |
 | **L44** build `procfs` | **The largest open item.** `ps` cannot work through `libkvm` here — LITES's `struct proc` carries `p_sigport`, `p_task`, `p_req_port`, `p_thread`, `p_servers`, so a 1994 binary reading by layout finds a different structure. `kernfs` is system variables, not processes. `procfs` is type 12 and is not built. |
-| userland breadth | Mechanical: the `NEED` list in `mkroot-netbsd.sh` is deliberately small. |
+| **L48** the guest clock is one day behind | Measured on `new_mk`: the RTC-derived time is 24 hours short to the second, and LITES adopts it. The project's own run had `date` right, so it may depend on the date. Uninvestigated, and wrong time corrupts every timestamp the system writes. |
+| userland breadth, and **U15** | Mechanical: the `NEED` list in `mkroot-netbsd.sh` is deliberately small. U15 is its smallest symptom — `halt` is not on root's `PATH`, `/sbin/halt` works. |
 
 **Exit condition:** the acceptance table passes with no blemishes beside
 it, and `ps` works.
@@ -164,6 +165,7 @@ week.
 | **K34** `ddb` symbol handling | The BSD debuggers descend from Mach's ddb but *stripped* the Mach parts — `db_sym.c` is 1,580 lines here and 489 in NetBSD (G119). xnu-123.5 shares 22 of 22 files and is the reference; the work starts from our own file. |
 | **R26** assembly line numbers | Pairs with both of the above. |
 | **K19**, **K23** immediate console, unique panic strings | Cheap, and they make every later failure legible. |
+| **L49** a LITES panic can print an empty message | Seen once on a wrong invocation: `panic:` with nothing after it, twice. Belongs beside K23 — a panic that cannot say why defeats the rest of this stage. |
 | **X19** in-kernel profiling | The *baseline* was taken in Stage 0. What belongs here is MK84's `pc_sample.c` (327 lines, permissive) — statistical profiling inside the kernel, which the tree has no counterpart for (G173), and which turns "IPC costs N" into "and here is where the N goes". |
 | **R29** the `regress/` tree | OpenBSD's proportions — 1,119 tests from a `share/mk` of 15 files, plain make, no framework (G112). Needs a userland, which Stage 2 provides. |
 
