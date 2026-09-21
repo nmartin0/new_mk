@@ -68,3 +68,22 @@ alpha_OFILES =
 lib${LIBNAME}.a_OFILES = ${${target_cpu}_OFILES} exec_file.o
 
 .include <${RULES_MK}>
+
+#
+# ODE's rules clear .SUFFIXES (osf.std.mk) and define no .s.o
+# transformation in its place, so the tree's components compile their
+# assembler with explicit rules. This is libmach's, from
+# AT386/machdep.mk, as written: copy x.s to x.S so the compiler
+# preprocesses it, then compile with -DASSEMBLER -- the same thing the
+# GNU route does with -x assembler-with-cpp -DASSEMBLER.
+#
+i386_SFILES	= ntoh.o
+SFILES		= ${${target_cpu}_SFILES}
+
+${SFILES:.o=.S}: $${.TARGET:.S=.s}
+	${RM} ${_RMFLAGS_} ${.TARGET}
+	${CP} ${${.TARGET:.S=.s}:P} ${.TARGET}
+
+${SFILES}: $${.TARGET:.o=.S}
+	${_CC_} -DASSEMBLER ${_CCFLAGS_} -c ${.TARGET:.o=.S}
+
