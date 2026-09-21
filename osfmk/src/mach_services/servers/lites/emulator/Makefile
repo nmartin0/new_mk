@@ -39,7 +39,7 @@
 #
 
 target_cpu	?= ${MACHINE}
-VPATH		= ${target_cpu}:extra:programs
+VPATH		= ${target_cpu}:extra:programs:../server:${EXPORTBASE}/lites/server:${EXPORTBASE}/lites
 
 EXPINC_SUBDIRS	= sys
 # EXPLIB_SUBDIRS	= libsyscall
@@ -59,7 +59,7 @@ INCFLAGS	= -I${LITES_TOP}server -I${LITES_TOP}include
 # The EXPORTBASE/bsdss directory contains the include files
 # in machine
 
-INCDIRS		:= -I${EXPORTBASE}/lites ${INCDIRS}
+INCDIRS		:= -I${EXPORTBASE}/lites/server -I${EXPORTBASE}/lites ${INCDIRS}
 
 # Makefile-version defines VERSION
 
