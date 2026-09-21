@@ -71,7 +71,16 @@ EMULATOR        = emulator.${VERSION}
 parisc_DEFINES	= -DUSENRPC
 
 DEFINES		= -DCMU=1 -DTypeCheck=0 -DMACH_IPC_COMPAT=0 -DCOMPAT_43 -DEMULATOR -DMAP_UAREA -DNFS -DLITES -DASYNCH_SIGNALS ${${target_cpu}_DEFINES}
-CFLAGS		= ${DEFINES} -g -nostdinc
+#
+# The configured compiler flags -- -DUNTYPED_IPC=1 among them, without
+# which LITES's typed-IPC declarations are compiled in -- come from the
+# Makevar that LITES's export-pass configuration step publishes, as the
+# GNU route applies its conf/Makevar to every compile.
+#
+.if exists(${EXPORTBASE}/lites/server/Makevar)
+.include "${EXPORTBASE}/lites/server/Makevar"
+.endif
+CFLAGS		= ${DEFINES} ${TARGET_CFLAGS} -g -nostdinc
 PC532_CFLAGS	= -mhimem -DGNU_LD2 -Dns532
 
 MIGFLAGS 	= ${DEFINES}
