@@ -77,14 +77,25 @@ OTHERS		= ../${_CONFIG_}/Makefile
 # sources, so they cannot describe the configuration that boots.
 #
 # Hooked on EXPINC_TARGETS, as libpthreads hooks its host-generated
-# pthread_impl.h onto the export pass. The single bsd_types_gen.h will
-# be made here as well, once the two generated headers its compilation
-# needs -- vnode_if.h and sys/syscall.h -- are.
+# pthread_impl.h onto the export pass.
+#
+# The same step generates the headers every later compile shares:
+# vnode_if.h, from kern/vnode_if.src by kern/vnode_if.sh, published
+# with the option headers; and sys/syscall.h, sys/sysproto.h and
+# sys/eproto.h, from kern/syscalls.master by kern/makesyscalls.sh,
+# published to ${EXPORTBASE}/lites/sys/ -- where the GNU route keeps
+# them too, in its include/sys/. Helander's template.mk generates both
+# in the server's own build, before anything that needs them. The
+# single bsd_types_gen.h, which needs both, follows.
 #
 VPATH		= ${LITES_TOP}
 EXPINC_TARGETS	= lites_configured
 LITES_MASTER	= conf/${target_cpu}/MASTER
 LITES_SERVER_EXPDIR = ${EXPORTBASE}/lites/server
+LITES_SYS_EXPDIR = ${EXPORTBASE}/lites/sys
+# vnode_if.sh takes the awk to use as an argument, and says it needs
+# "nawk extensions and gawk's toupper"; the GNU route passes nawk.
+LITES_AWK	?= nawk
 ansi_CPP	?= ${ANSI_CC} -E
 INCFLAGS	= -I${LITES_TOP}server
 INCDIRS		:= -I. -I${EXPORTBASE}/lites ${INCDIRS}
@@ -103,6 +114,17 @@ lites_configured: ${LITES_MASTER} conf/MASTER conf/files conf/${target_cpu}/file
 	/bin/sh Doopt.sh
 	@set -- *.h; [ -f "$$1" ] || { \
 	    echo "LITES configuration produced no option headers" >&2; exit 1; }
+	top=${${LITES_MASTER}:P:H:H:H}; \
+	${RM} -rf syscalls sys libjacket libsys && \
+	mkdir syscalls sys libjacket libsys && \
+	cd syscalls && /bin/sh $$top/server/kern/makesyscalls.sh \
+	    $$top/server/kern/syscalls.master
+	top=${${LITES_MASTER}:P:H:H:H}; \
+	${RM} -f vnode_if.h vnode_if.c && \
+	/bin/sh $$top/server/kern/vnode_if.sh $$top/server/kern/vnode_if.src \
+	    "${LITES_AWK}"
+	${MAKEPATH} ${LITES_SYS_EXPDIR}/.
+	${CP} sys/syscall.h sys/sysproto.h sys/eproto.h ${LITES_SYS_EXPDIR}/
 	${MAKEPATH} ${LITES_SERVER_EXPDIR}/.
 	${CP} *.h Makevar ${LITES_SERVER_EXPDIR}/
 	touch ${.TARGET}
