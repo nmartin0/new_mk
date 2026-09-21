@@ -1,89 +1,49 @@
-# test_mk7.3
+# new_mk
 
 A revival of **OSF Mach Kernel 7.3** (MkLinux DR3) for i386, built on a
-Linux host and run under QEMU.
-
-The immediate goal is a booting microkernel with a serial console and a
-gdb stub. OS servers come after that, because in a microkernel they are
-ordinary user tasks and can be built and debugged at runtime.
-
-
-## Booting it
-
-```sh
-sh tools/mkroot-netbsd.sh          # the NetBSD root, once
-sh tools/mkiso.sh                  # a GRUB-bootable disc
-```
-
-then boot the disc with the disks it still needs -- `mkiso.sh` prints
-the exact command. Or, for development, `tools/boot-ide.sh` skips the
-bootloader and uses QEMU's `-kernel`. Either way you reach a login
-prompt; `root` has no password.
+Linux host and run under QEMU, with the **LITES** 4.4BSD personality as a
+first-class server of the tree.
 
 ## Layout
 
 | path | what it is |
 |---|---|
-| `osfmk7.3/` | verbatim vendor import of OSF MK 7.3. Modified only where necessary and always with justification. |
-| `build/` | everything we write. |
-| `AGENTS.md` | operational rules — read before changing anything. |
-| `HANDOFF.md` | **start here** — current state, next question, and the traps. |
-| `WORKFLOW.md` | how work is done here. |
-| `ENVIRONMENT.md` | toolchain, ODE, MIG, and how to reproduce the build. |
-| `DEBUGGING.md` | how to find out why the kernel misbehaves; read before debugging. |
-| `docs/` | design notes, open decisions, and the current state. |
-| `docs/archive/` | solved investigations, kept for their eliminated hypotheses and instrument traps. |
-| `docs/GIT-HYGIENE.md` | commit and history conventions, and how this history was repaired. |
-| `tools/` | debugging helpers. |
-| `PRINCIPLES.md` | why the decisions are what they are. |
+| `osfmk/` | verbatim vendor import of OSF MK 7.3. Modified only where necessary and always with justification. |
+| `osfmk/src/mach_services/servers/lites/` | verbatim vendor import of LITES 1.1.u3, placed as a server of the tree — the same position CMU gave the UNIX server. |
+| `build/` | our build scripts: sandbox setup, ODE bootstrap, environment. |
+| `tools/` | our debugging and image-building helpers. |
+| `notes/` | everything we write: the roadmap, the backlog, the decisions, the measured findings, and the working method. |
+| `README_DR3`, `OSFMK_BUILD.README` | OSF's own documentation, kept as shipped. |
 
-`git diff <vendor-import>..HEAD -- osfmk7.3/` is the complete record of
-our deviation from upstream. It is expected to stay small.
+**`notes/ROADMAP.md` is the entry point** for what to do next.
+**`notes/HANDOFF.md`** and **`notes/docs/current-blocker.md`** are the
+authoritative record of where the system actually is.
 
-## Prerequisites
+## The record of what we changed
 
 ```sh
-apt-get install gcc gcc-multilib binutils libc6-i386 qemu-system-x86 gdb
+git diff <vendor-import>..HEAD -- osfmk/
 ```
 
-And a clone of [ode4linux](https://github.com/nmartin0/ode4linux). OSFMK
-is built by ODE make, not GNU make. Its own rule set is complete and
-in-tree; ode4linux supplies the two things the OSFMK tree lacks — a make
-binary that builds on a modern Linux host, and `sys.mk`.
+is the complete record of every change to someone else's code. Nothing
+we write lives under `osfmk/` except changes to OSF's and LITES's own
+files, each carrying its reason at the site and in its commit message.
 
-`libc6-i386` is needed only to run the prebuilt `migcom` and `config`
-shipped under `osfmk7.3/osfmk/tools/i386/i386_linux/hostbin`. Building
-both from their in-tree source is a planned milestone.
+## Why LITES sits where it does
 
-## Build
+CMU built the UNIX server as a peer of the kernel: `usr_random/src/Makefile`
+line 209 reads
 
-```sh
-export ODE4LINUX=/path/to/ode4linux
-sh build/bootstrap-ode.sh      # once: builds ODE make
-. build/env.sh                 # sets the AT386-on-Linux environment
+```make
+MACH=	mach_kernel mach_servers/ux mach_servers/mach_init
 ```
 
-`build/env.sh` is derived line by line from
-`osfmk7.3/osfmk/src/osc/Buildconf`, OSF's own ODE configuration, which
-already carries explicit support for an i386 target on a Linux host. The
-single deliberate departure is documented in place.
+and UX's server used the kernel's own configuration machinery — `conf/MASTER`,
+`MASTER.local`, `Makefile.template`, `files`, `copyright` — file for file.
 
-Current build state, including what compiles and what does not, is
-recorded in `AGENTS.md`.
-
-## Licensing
-
-`osfmk7.3/` is OSF Mach Kernel 7.3. Every source file carries OSF's
-MIT/X11-style notice granting use, copying, modification and
-distribution for any purpose without fee. Files also carry, variously,
-Carnegie Mellon, Intel, Olivetti and University of Arizona notices —
-all permissive, all preserved as found.
-
-Note that `osfmk7.3/osfmk/src/mach_kernel/conf/copyright.osf` contains a
-restrictive academic-use template. It is **not applied to any source
-file**; 1,272 kernel sources carry the permissive notice and none carry
-the restrictive one. Do not be misled by it.
-
-The licence for our own contributions in `build/` is not yet decided.
-Files carry `SPDX-FileCopyrightText: 2026 Nicholas Martin` without a
-licence identifier until it is.
+LITES already carries the same machinery (`conf/MASTER`, `conf/files`,
+`conf/i386/`, `doconfig.sh`, `gensym.awk`, `newvers.sh`), because
+Helander wrote it as a Mach component. What sits on top of it is a GNU
+`configure` added later. Absorbing LITES into the tree is therefore not a
+conversion — it is removing that wrapper and letting the Mach machinery
+underneath do the work it was written for.
