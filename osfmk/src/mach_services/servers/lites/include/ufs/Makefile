@@ -29,7 +29,7 @@ IDIR		= /include/ufs/ufs/
 EXPDIR		= /lites/ufs/ufs/
 
 LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
-VPATH		= ${LITES_TOP}server/ufs/ufs ${LITES_TOP}server/ufs/ffs ${LITES_TOP}server/ufs/lfs ${LITES_TOP}server/ufs/mfs
+VPATH		= ${LITES_TOP}server/ufs/ufs:${LITES_TOP}server/ufs/ffs:${LITES_TOP}server/ufs/lfs:${LITES_TOP}server/ufs/mfs
 
 INCLUDES = ffs_extern.h dinode.h fs.h dir.h lfs.h inode.h lfs_extern.h \
 	lockf.h mfs_extern.h quota.h mfsiom.h ufs_extern.h mfsnode.h \

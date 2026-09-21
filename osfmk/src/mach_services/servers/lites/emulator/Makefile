@@ -38,7 +38,7 @@
 #	Date:	May 1994
 #
 
-VPATH		= ${target_cpu} extra programs
+VPATH		= ${target_cpu}:extra:programs
 
 EXPINC_SUBDIRS	= sys
 # EXPLIB_SUBDIRS	= libsyscall
