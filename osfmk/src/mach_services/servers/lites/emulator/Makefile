@@ -53,12 +53,12 @@ IDIR		= /special/
 NO_STRIP	=
 
 LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
-INCFLAGS	= -I${LITES_TOP}server -I${LITES_TOP}include
+INCFLAGS	= -I${LITES_TOP}emulator -I${LITES_TOP}server -I${LITES_TOP}include
 
 # The EXPORTBASE/bsdss directory contains the include files
 # in machine
 
-INCDIRS		:= -I${EXPORTBASE}/lites/server -I${EXPORTBASE}/lites ${INCDIRS}
+INCDIRS		:= -I. -I${EXPORTBASE}/lites/server -I${EXPORTBASE}/lites ${INCDIRS}
 
 # Makefile-version defines VERSION
 
