@@ -1,737 +1,423 @@
 # ROADMAP
 
-Where this project is, what is left, and what the reference trees told
-us to do about it. Updated as things land; `docs/current-blocker.md`
-holds the live detail, this holds the shape.
+**Start here for what to do next.**
+
+Four documents hold roughly 300 KB between them. Each is right about its
+own area and none can say what comes first, because the answer depends
+on the others. This file is the ordering; the detail stays where it is,
+and every item names its home.
+
+- **`BACKLOG.md`** — the one list of what is open (R, K, L, U, Q).
+- **`DECISIONS.md`** — why the work is shaped this way (D, P, H).
+- **`FINDINGS.md`, `FINDINGS2.md`** — what was measured (G1–G180).
+- **`DISTRIBUTED.md`** — the long-horizon multiserver design (X1–X26).
+- **`RULES.md`** — the method everything above is done by.
+
+**How it is ordered.** By dependency, and by what would stop the work —
+not by size or by interest. An item appears after everything it needs and
+before everything that needs it. Where two items could go either way, the
+one that makes the other *safer* comes first.
+
+**What this is not.** It is not a schedule and it does not estimate.
+Several stages below are a week and several are a year, and saying which
+would be a guess presented as a plan.
 
 ---
 
-## Done
+## Where the project actually is
 
-**1. The kernel boots.** OSFMK 7.3 on QEMU/i386, twelve deviations from
-the MkLinux base, each recorded in `HANDOFF.md` with its reason.
+**The system runs.** A cold boot reaches a login prompt unaided — `init`,
+`rc`, `getty`, `login`, `csh`. The project's own acceptance table records
+pipes, redirection, ownership resolution through the passwd and group
+databases, shell scripts, background jobs, signals and job control, a
+writable ext2 root, `sync` returning 0 with the data verified from the
+host after a halt, and `e2fsck -fn` reporting no errors across 81 files.
+`/kern` is mounted. It boots from an ISO. The whole stack builds with no
+compiler-supplied file at all.
 
-**2. A multiserver userland runs.** Bootstrap task loads and starts
-`default_pager` and LITES from a filesystem it reads itself.
+**Deviation from the vendor import is 16 files**, each with an `AI-ONLY
+NOTE` at the site and a commit message carrying the evidence, and all
+re-verified by reverting them individually against a positive control.
 
-**3. LITES runs and mounts a root filesystem.** Builds, links, loads,
-prints its banner, mounts ext2 on `hd0c`, reads the root directory, and
-reaches its first-program exec.
-
-**Supporting work that turned out to matter as much:**
-
-- `libmach_sa` -- a library several things link against and **nothing in
-  any tree builds**. Now built, following `libmach_p`'s pattern.
-- The emulator links and runs; `emul_exec_open` and `emul_exec_start`
-  both succeed.
-- The boot cycle went from ~500 s to ~20 s by moving the servers off the
-  emulated floppy onto IDE.
-- The whole stack builds and boots in the development sandbox, so
-  changes can be tested where they are written.
+So the question is no longer "can this boot". It is **"how does a working
+1997 microkernel become a modern, correct, distributable system without
+losing what makes it worth reviving"** — and the ordering below follows
+from that.
 
 ---
 
-## Order of work
+## Stage 0 — Trust what you have
 
-The reference survey changed the shape of step 4. The first program went
-from unsolved to a port with a known-good source, and the step *after*
-it turned out to be the real long pole.
+**Nothing below is safe without this, and nothing here depends on
+anything.** There are ~190 open items, one maintainer, and a working
+system that can regress silently. Everything in this stage exists to make
+a regression loud, to make a rebuild mean something, or to settle a
+premise the later stages rest on.
 
-**1. Move the server volume to ext2.** *(done -- see boot-ide.sh)*
-Retired `tools/mkminix.py` and removed GPL code from the bootstrap task
-binary: `file_systems/minixfs` contains three GPL files and
-`minixfs/machdep.mk` builds one of them into `libsa_fs.a`. `ext2fs` is
-GPL-free and the bootstrap task already tried it first.
-
-**2. Source a NetBSD 1.0 userland.** This must come **before** porting
-`mach_init`, which is the correction that reordering this list is for.
-
-`mach_init` is a BSD process -- its `fork`, `execve`, `open`, `kill`,
-`waitpid` and `sigblock` go through the emulator into LITES. It cannot
-be built as a standalone Mach program: `libsa_mach` supplies headers but
-only `printf`, `exit` and `sleep`, none of the POSIX calls. It needs a
-libc.
-
-**LITES's own documentation settles how that libc arrives.**
-`doc/install.freebsd`, by Helander, December 1994:
-
-```
-Installing Lites on a FreeBSD machine -- jvh 941204
-- Install FreeBSD 2.0 on the machine
-- Install the Mach bootable kernel in the root directory (e.g. /mach.boot)
-- Create a /mach_servers directory
-- Populate with startup, emulator, mach_init
-- Create a paging file. ...
-  ln -s /dev/sd0g/PAGING_FILE /mach_servers/paging_file
-```
-
-and `doc/README.netbsd` documents the same against **NetBSD 1.0**, which
-is the one chosen here.
-
-**LITES takes over an existing BSD installation.** The BSD system
-provides `/sbin/init`, `/bin/sh`, libc and the whole userland; Mach adds
-three files to `/mach_servers`. There is no hand-rolled libc in the
-design, so building one would be inventing something the project never
-had.
-
-Two details there correct assumptions this project has been running on:
-`/mach_servers` holds exactly `startup`, `emulator` and `mach_init`, and
-the pager is given a **paging file** rather than the raw `hd1c` device
-we currently use -- which matches `mach4-UK22`'s `def_pager_setup.c`.
-
-**Corrected later:** true of mach4, and not a criticism of this tree.
-OSFMK 7.3's pager takes device names only and its bootstrap has no
-paging-file code, so `hd1c` is the supported mechanism here. See the
-head of `docs/current-blocker.md`.
-
-### The a.out toolchain problem, and a way round it
-
-**Linking `mach_init` against NetBSD's libc needs a toolchain we do not
-have.** `comp10` supplies `usr/lib/libc.a` (453 KB) and the full
-`usr/include`, and the symbols are there -- `_open`, `_execve`, `_fork`,
-`_printf`, `_sigblock` all present with a.out's leading underscore. But:
-
-```
-$ nm usr/lib/libc.a
-nm: truncate.o: file format not recognized
-
-$ ld --version && ld --help | grep 'supported targets'
-GNU ld (GNU Binutils for Ubuntu) 2.42
-ld: supported targets: elf64-x86-64 elf32-i386 ... pe-i386 ... binary ihex
-```
-
-`ar` reads the archive, but every member is a.out and **binutils 2.42
-has no a.out target at all**. Alan Modra's "various i386-aout and
-i386-coff target removal" deleted `bfd/i386netbsd.c` among others, so
-anything recent cannot link these objects.
-
-Building a pre-removal binutils (around 2.30) as
-`--target=i386-netbsdaout` would work, and the GitHub mirror
-`bminor/binutils-gdb` is reachable from the sandbox. That is a real but
-bounded piece of work.
-
-**But it may not be necessary.** `/sbin/init` is already a working
-NetBSD binary, and LITES has a flag to run it directly:
-
-```c
-		    case 'i':
-			/* Allow non-default init program file name: */
-			strcpy(init_program_name, argv[1]);
-```
-
-It sits inside `#if SECOND_SERVER`, and our build has
-`#define SECOND_SERVER 1` in the generated `second_server.h`, so **the
-flag is compiled in**.
-
-If LITES can be pointed straight at `/sbin/init` via `bootstrap.conf`,
-then `mach_init` is not needed to reach a shell, the cross-toolchain is
-not needed to build it, and the port already committed becomes
-belt-and-braces rather than a dependency. Worth testing before building
-any toolchain.
-
-### Verified against the real NetBSD 1.0 sets
-
-The sets are mirrored in the reference collection at
-`nmartin0/mach_stuff` under `netbsd-1.0-i386/binary/`, so they can be
-inspected directly rather than reasoned about. What they show:
-
-**`/bin/sh` and `/sbin/init` are statically linked.** Their a.out
-headers, with `a_midmag` read big-endian as NetBSD packs it:
-
-| file | midmag | MID | flags |
-|---|---|---|---|
-| `bin/sh` | `0x0086010b` | 134 (`MID_I386`) | **0x0** |
-| `sbin/init` | `0x0086010b` | 134 | **0x0** |
-| `bin/ls` | `0x0086010b` | 134 | **0x0** |
-| `usr/libexec/ld.so` | `0xc086010b` | 134 | 0x30 |
-
-`EX_DYNAMIC` is `0x20` and `EX_PIC` is `0x10`, so only `ld.so` itself is
-dynamic. NetBSD 1.0 kept the traditional rule that `/bin` and `/sbin`
-are static because `/usr` may not be mounted at boot.
-
-**That removes the largest risk in this plan.** There is no `ld.so` on
-the path to a shell prompt, so the dynamic-linking question -- whether
-`ld.so`'s own mmap and relocation work survives the emulator -- does not
-arise until we want something from `/usr/bin`.
-
-**The emulator's test matches exactly.** `bin/sh`'s first four bytes
-read little-endian are `0x0b018600`, which is precisely the constant
-`emul_exec.c` compares against. That code was written against this
-release.
-
-**The `NEED` list was a guess and is now fact.** Every binary in it
-exists at the path assumed, and the list has been widened to the useful
-contents of `bin` and `sbin`.
-
-### Correction: the emulator knows NetBSD explicitly
-
-An earlier note here said NetBSD binaries "fall through to
-`BT_FREEBSD`". That is true of `liblites/exec_file.c`, but **not** of
-the emulator, which is what actually runs user programs.
-`emulator/emul_exec.c` tests for NetBSD first and by name:
-
-```c
-if ((exdata.magic & ~0xfc) == 0x0b018600) {
-	/*
-	 * NetBSD magic's are in inverted byte order
-	 * 0xfc is mask for flags field.
-	 */
-	*binary_type = BT_NETBSD;
-```
-
-`0x86` is 134, `MID_I386`. So NetBSD/i386 a.out is recognised properly
-and gets `BT_NETBSD`, not a fallback.
-
-**And `~0xfc` masks out the flags field deliberately**, which is where
-NetBSD's `EX_DYNAMIC` bit lives. Static and dynamic binaries therefore
-both match this test, on purpose. That is a deliberate accommodation of
-shared libraries rather than an accident.
-
-NetBSD 1.0 is the release where i386 gained shared libraries, per
-NetBSD's own release notes, so `/bin/sh` may well be dynamic. Whether
-`ld.so` then runs correctly under the emulator is a separate question
-and untested -- but the binary will at least be classified correctly,
-and `e_trampoline.c` gives `BT_NETBSD` the same BSD syscall table as
-`BT_386BSD` and `BT_FREEBSD`.
-
-### What the loaders expect from a NetBSD binary
-
-Settled before going looking for install media.
-
-`doc/README.netbsd` warns that "the only thing you need to do is to make
-your bootstrap grok binaries with NetBSD's a.out header", so there is
-known work on the bootstrap side. On the **LITES** side there is none,
-and the reason is worth writing down because it also explains the
-`BT=20` puzzle.
-
-`liblites/exec_file.c` classifies a.out by the machine id in
-`(magic >> 16) & 0xff`:
-
-| MID | classified as |
+| item | why it is first |
 |---|---|
-| 100 | `BT_LINUX` / `BT_LINUX_SHLIB` |
-| 0 | `BT_CMU_43UX` (entry non-zero) or `BT_386BSD` |
-| 0x45 | pc532 |
-| anything else, QMAGIC | **`BT_FREEBSD`** |
-
-NetBSD/i386's MID is not in that switch, so its QMAGIC binaries fall to
-the default and are classified `BT_FREEBSD`. **That does not matter**,
-because `emulator/i386/e_trampoline.c` gives them all the same syscall
-table:
-
-```c
-      case BT_386BSD:
-      case BT_NETBSD:
-      case BT_FREEBSD:
-      default:
-	current_nsysent = e_bsd_nsysent;
-	current_sysent = e_bsd_sysent;
-```
-
-So a stock NetBSD userland is emulated correctly whichever of those it
-is called.
-
-**And the entry-address tests are not bugs.** `BT_LITES_Q` requires
-`a_entry >= 0x90000000` and `BT_LITES_ELF` requires
-`e_entry > 0x10000000`, with a comment in the source explaining that the
-QMAGIC threshold was *raised* from `0x10000000` because "linux ld.so in
-QMAGIC form has an entry of 0x62f00020 but we really don't want it to be
-recognized as a BT_LITES_Q".
-
-Those tests are how LITES tells **its own** binaries -- linked high, as
-our emulator is at `0xa0001020` -- from foreign ones. Our server is
-reported as `BT=20` because it is an ELF at `0x8049320`, below the
-threshold, so it is not recognised as LITES-native. Whether that matters
-depends on what a LITES-native ELF is supposed to look like, which is
-the question to settle when item 4 comes round -- it is a narrower
-question than "the classifier is broken".
-
-### The root filesystem: ext2, and what goes in it
-
-**Use ext2, not FFS.** `README.netbsd`'s bootstrap patch exists because
-4.4BSD split `d_reclen` into `d_type` and `d_namlen` in the **FFS**
-directory entry -- the same change ext2's `filetype` feature makes, and
-which this project already handled with `-O ^filetype`. That patch is
-only needed if the userland lives on FFS. Both our readers already
-handle ext2, and it is proven working for the root and the server
-volume.
-
-**ext2 can hold a complete Unix root.** `debugfs` does all four things
-needed, without mounting and without privileges:
-
-```sh
-debugfs -w -R "write localfile /path"      root.img   # files
-debugfs -w -R "mkdir /sbin"                root.img   # directories
-debugfs -w -R "symlink /bin/sh /sbin/sh"   root.img   # symlinks
-debugfs -w -R "mknod /console c 0 0"       root.img   # device nodes
-```
-
-The `mknod` was tested: it produces mode `20000`, a character device.
-
-**The device numbers come from LITES's own `cdevsw`**, in
-`server/i386/conf.c`. Character majors:
-
-| major | name | note |
-|---|---|---|
-| 0 | `console` | what `mach_init` opens |
-| 1 | tty | controlling terminal |
-| 2 | kmem, null | |
-| 3 | `hd` | ISA disk, block major 8 |
-| 5, 6 | pts, ptc | pseudo-terminals |
-| 7 | log | |
-| 8 | `com` | serial |
-| 9 | `fd` | floppy, block major 8 |
-| 13 | `sd` | SCSI disk |
-| 15 | `cd` | CD-ROM |
-
-So `/dev/console` is `mknod c 0 0`, which is what `mach_init` needs to
-open before it can report anything.
-
-### Where NetBSD 1.0/i386 lives
-
-```
-https://archive.netbsd.org/pub/NetBSD-archive/NetBSD-1.0/i386/binary/
-    base10/   28 pieces base10.aa .. base10.bb, 240640 bytes each
-              (~6.7 MB; cat them together for a gzipped tar)
-    etc10/    /etc, including the rc scripts and ttys init reads
-    comp10/   compiler, headers and libc for building mach_init
-```
-
-Dated 19 October 1994, which is the release LITES's own
-`doc/README.netbsd` was written against.
-
-`tools/mkroot-netbsd.sh` fetches the base and etc sets, extracts them,
-and builds an ext2 root with `/dev/console` and the other device nodes
-from LITES's `cdevsw`. It installs an explicit list of binaries rather
-than the whole set, to keep the image small and make the dependency set
-visible rather than implied.
-
-**3. Link `mach_init` against that libc.** The requirements were worked
-out ahead of time and are small.
-
-From **NetBSD's libc**, all standard 4.4BSD:
-
-```
-open close dup execve fork kill getpid getppid
-sigblock sigmask sigpause sigsetmask alarm
-printf fprintf fflush _exit
-```
-
-From **Mach**, only three symbols: `cthread_fork_prepare`,
-`cthread_fork_parent` and `cthread_fork_child`, which are in
-`libcthreads`. Everything else went with the service server -- `main.c`
-now uses **no Mach types at all**; the only `task_t` and port references
-left are inside its HISTORY and explanatory comments.
-
-Those three stay rather than being dropped as a further simplification.
-`cthread_fork_prepare()` calls `vm_inherit(mach_task_self(),
-p->stack_base, p->stack_size, VM_INHERIT_COPY)` so the child gets the
-cthread stack, and `main.c`'s own HISTORY records that the explicit
-calls were added deliberately, so someone found them necessary.
-
-So the link is `main.o` + NetBSD libc + `libcthreads` + `libmach`, with
-`comp10` supplying the first. The Mach traps `libcthreads` makes work
-under LITES because Mach is underneath it. The port itself is done and
-committed at `mach_services/cmds/mach_init/`; it compiles and waits only
-for a libc.
-
-**4. Fix ELF binary classification.** `liblites/exec_file.c` recognises
-an ELF as its own only when the entry is above `0x10000000`; ours are at
-`0x8049320`, which is why the emulator reports `BT=20` (`hpelf`). This
-bites the moment an i386 ELF first program is exec'd. xMach shows the
-shape of the fix.
-
-## It runs: acceptance measured, and what is left is optional
-
-A root built from scratch boots multi-user, logs in, and does the
-things a Unix is supposed to do -- pipes, scripts, background jobs,
-signals, a writable filesystem, a clean halt leaving `e2fsck` with no
-errors. The table is at the head of `docs/current-blocker.md`.
-
-**Everything remaining is optional and unsequenced.** None of it
-blocks the system running, and none of it is waiting on anything else:
-
-0. **Console input reorders a character under burst input** -- one
-   line in three, and it can change what the shell runs. Reproduction,
-   control and the two hypotheses at the head of
-   `docs/current-blocker.md`. This is the one real defect left.
-1. ~~Three buffers `halt` cannot flush~~ **explained and reported
-   honestly**: they are ext2's pinned group-descriptor and bitmap
-   buffers, not unwritten data, and halt now says
-   `done (3 held, none unwritten)`. The root still cannot be
-   unmounted at shutdown, so the filesystem is left marked not clean;
-   the reason is recorded.
-2. **Three buffers `halt` cannot flush** -- `syncing disks... giving
-   up`. Costs no data and no consistency, since an explicit `sync`
-   reaches the disk and the filesystem checks clean afterwards. Worth
-   finding, not urgent.
-2. **Console output interleaves** between two writers. Same family as
-   the two-claimants question.
-3. **Userland breadth.** The `NEED` list in `mkroot-netbsd.sh` is
-   deliberately small; `id`, `wc`, `grep` and most of a normal system
-   are simply not installed. Adding them is mechanical.
-4. ~~`kernfs`, compiled and never mounted~~ **done**: `/kern` is
-   mounted at boot and serves `hz`, `physmem`, `loadavg`,
-   `host_basic_info` and the rest. But the claim attached to it was
-   wrong -- kernfs is system variables, not processes. The process
-   filesystem is **procfs**, type 12 in the same table, and it is not
-   built (`obj/server` has `procfs.h` and no objects). Building it is
-   the real answer to `ps`, and is now the largest open item.
-
-## Superseded: multi-user boot works: init, rc, getty, login, csh
-
-A cold boot reaches a login prompt unaided, and logging in gives a
-working shell on a writable root. Evidence at the head of
-`docs/current-blocker.md`. That completes what this roadmap called
-step 4, and then some: the original goal was "a shell prompt".
-
-**What is left is no longer a chain of blockers but a list of
-independent things, none of which stops the system running:**
-
-1. ~~The emulator terminates on an unmappable error~~ **done**: it
-   fails the call with EINVAL and keeps the diagnostic, verified by a
-   control that put the original junk value back.
-2. ~~Look for the fourth missing return~~ **done, and empty**: a
-   `-Wreturn-type` sweep finds sixteen sites in fourteen functions,
-   all logically void with no caller consuming their value. Method and
-   list in `DEBUGGING.md` section 10a. The related family -- a
-   `mach_error_t` returned where an errno belongs -- is not
-   searchable that way and remains open.
-3. ~~`/dev/mem`, or a decision not to have one, for `ps`~~
-   **decided: not supportable, and nothing shipped.** `ps` reads the
-   proc table by layout through libkvm, and LITES's `struct proc`
-   carries Mach ports a NetBSD 1.0 binary cannot know about. With
-   every file it wanted supplied it got as far as
-   `proc size mismatch (4620 total, 644 chunks)`. The same applies to
-   `w`, `uptime`, `vmstat`, `netstat` and `pstat`. Full account, and
-   the two routes that would work, at the head of
-   `docs/current-blocker.md`.
-4. ~~The paging file, replacing raw `hd1c`~~ **decided: not
-   applicable, nothing shipped.** OSFMK 7.3's `default_pager` takes
-   Mach device names only -- `dp_parse_argument()` accepts `-v` and
-   `cl=N`, everything else goes to `device_open()`, and
-   `dev_name_lookup()` parses `<name><unit><partition>` with no paths.
-   The paging file in `doc/install.freebsd` belongs to the mach4
-   lineage, where the BOOTSTRAP task set it up
-   (`mach4-UK22/bootstrap/def_pager_setup.c`); this bootstrap has no
-   such code. `hd1c` is the supported mechanism, not a workaround.
-   Full account at the head of `docs/current-blocker.md`.
-5. **More userland.** The root carries a deliberately small subset of
-   the NetBSD sets. `id` is already missing, and anything beyond the
-   `NEED` list in `mkroot-netbsd.sh` will be too.
-6. **What the console does with two claimants** -- see the correction
-   in `docs/current-blocker.md`. Not on the critical path.
-
-## Superseded: the login chain works: getty, login, csh
-
-A complete BSD login runs under LITES. Evidence at the head of
-`docs/current-blocker.md`. The blocker was `set_task_priority()`
-having no return statement, so `donice()` returned an uninitialised
-register as `setpriority(2)`'s error.
-
-**Next, in order:**
-
-1. **`/etc/ttys`: turn the console line on.** It is installed
-   unmodified, with `console` off and `ttyv0` on, so multi-user init
-   spawns nothing. This is the last piece before a login prompt
-   appears without being asked for -- and the first real test of
-   multi-user boot.
-2. **The console drops characters** once getty reconfigures the line.
-   A password prompt tolerates dropped input far less than a username
-   does.
-3. **The emulator terminates on an unmappable error** rather than
-   returning one. That turned a missing return into a dead process.
-4. **`/dev/mem`**, or a decision not to have one, for `ps`.
-5. **The paging file**, replacing raw `hd1c`.
-
-## Superseded: the login chain: getty prompts, login does not run
-
-`/etc` is populated and the login chain installed by
-`mkroot-netbsd.sh`. getty runs, sets the terminal and prompts; login
-dies in `setpriority`. Dynamic linking works, which was the open
-question -- these are the first non-static binaries this project has
-run.
-
-**Next, in order:**
-
-1. **`donice()` returns a raw Mach error** from
-   `set_task_priority()`, which the emulator cannot map, so it
-   terminates login. Same class as the TTY_STATUS bug just fixed in
-   `tty_param`. Decide whether to translate it or to treat a failed
-   Mach policy set as non-fatal, and separately whether the emulator
-   should terminate at all when an error will not map.
-2. **The console drops characters** once getty reconfigures the line.
-   A login that cannot print its prompt cannot read a password.
-3. **`/etc/ttys` needs the console line turned on** for a multi-user
-   boot; it is installed unmodified, with `console` off and `ttyv0`
-   on. Nothing can use it until 1 and 2 are done.
-4. **`/dev/mem`**, or a decision not to have one, for `ps`.
-5. **The paging file**, replacing raw `hd1c`.
-
-## Superseded: step 4 is done, and the root is read-write
-
-`/bin/sh` runs commands, and after `/sbin/mount -u -w /` it can write:
-files created under LITES reach the disk and the result passes
-`e2fsck` clean. Transcript and evidence at the head of
-`docs/current-blocker.md`.
-
-Item 1 below -- the read-write root -- turned out not to be the large
-piece of work it was recorded as. It was not an ext2 defect at all: the
-read-only mount is what 4.4BSD does, FFS does it identically in this
-same tree, and the remount path already existed. What was missing was
-`/dev/hd0c` and `/etc/fstab` in the root image, both now built by
-`mkroot-netbsd.sh`. The write path itself worked first time.
-
-**So the remaining work is userland assembly, in this order:**
-
-1. **`/etc` and the login chain.** Now the top item.
-   `mkroot-netbsd.sh` installs only `bin/` and `sbin/` binaries, so
-   `/etc` holds nothing but the `fstab` just added: no `rc`, no
-   `ttys`, no `getty`, no `login`, no password database. An `/etc/rc`
-   would also make the read-write remount automatic, as it is on a
-   real BSD. Multi-user init needs `ttys` to spawn anything at all.
-2. **`/dev/mem`, or a decision not to have one**, for `ps`.
-3. **The paging file**, replacing raw `hd1c`.
-
-## Superseded: step 4 is done: a shell runs commands
-
-`/bin/sh` executes commands typed at the console. The transcript is at
-the head of `docs/current-blocker.md`; `ls /` alone exercises fork,
-exec, an ext2 directory read and tty output.
-
-`tools/console.py` is what made it reachable -- the serial line is now
-a socket that can be answered, rather than a file that can only be
-read.
-
-**What the shell immediately showed is the next work, in order:**
-
-1. **A read-write root.** `ext2_vfsops.c:117` mounts `MNT_RDONLY`, and
-   the shell confirms it: `cannot create /tmp/x: read-only file
-   system`. Nothing can be written anywhere. This is the largest item,
-   because it is the first thing to exercise ext2's write path, which
-   has never run in this project -- expect that to be a piece of work
-   in itself rather than a flag change.
-2. **`/etc` and the login chain**, for a multi-user system.
-   `mkroot-netbsd.sh` fetches the `etc10` set but its `NEED` list
-   installs only `bin/` and `sbin/` binaries, so `/etc` in the built
-   root is **empty**: no `ttys`, no `rc`, no `getty`, no `login`, no
-   password database. Multi-user init would read no `ttys` and spawn
-   nothing. Extending that list is cheap; making `login` work needs
-   the password database and a writable `/var` for `utmp`.
-3. **`/dev/mem`**, or a decision not to have one. `ps` fails with
-   `Device not configured`. A 1994 BSD `ps` reads the proc table out of
-   kernel memory, which under a microkernel is not where it lives, so
-   this is a design question rather than a missing node.
-4. **The paging file.** `default_pager` is given raw `hd1c`;
-   `doc/install.freebsd` describes a paging file in `/mach_servers`.
-
-## Superseded: where step 4 stood after session 6
-
-Step 4 is further than the sections below assume, and the remaining gap
-is different from the one they describe.
-
-**A NetBSD 1.0 userland is sourced and running** (step 2 is done, not
-pending). `tools/mkroot-netbsd.sh` builds the ext2 root from the real
-sets; `boot-ide.sh` installs `emulator` and `init` into
-`/mach_servers`. LITES execs NetBSD's own `/sbin/init`, which acquires
-the console, forks, and runs `/bin/sh`.
-
-**So "a shell prompt" is reached**, in the sense that init prints its
-single-user prompt and waits for input. What is not yet done is
-answering it: `boot-ide.sh` gives the guest a serial console written to
-a file, which cannot take keystrokes. `tools/boot-debug.sh` is the one
-with an interactive console, and driving `/bin/sh` by hand through it
-is untried.
-
-**What blocks an unattended boot is `kern_exit.c`'s hard-coded pid 2**,
-not the absence of `mach_init` -- see the head of
-`docs/current-blocker.md`. That reframes 4a below: porting `mach_init`
-is *one* of three ways to clear it, and it is the faithful one, because
-the hack is correct whenever pid 2 really is `mach_init`. The other two
-are to condition the hack on the init program, or to drop it for a
-directly booted BSD init. Both of those touch LITES source and would
-need regenerating into `tools/lites/lites-osfmk73.patch` in the same
-commit.
-
-4b is done: `boot-ide.sh` grew the population step.
-
-## Next: finish step 4, a shell prompt
-
-### 4a. The first program: build Mach 4's `mach_init`
-
-**A real, permissively licensed `mach_init` exists**, in
-`user-mach4/etc/mach_init/` of the reference collection. This changes
-4a from "write one" to "port one", and it is the right one:
-
-```
- * Mach Operating System
- * Copyright (c) 1991,1990,1989,1988,1987 Carnegie Mellon University
- * Permission to use, copy, modify and distribute this software and its
- * documentation is hereby granted, ...
-```
-
-A CMU Mach licence **with an explicit grant** -- permissive and
-compatible with this tree, unlike the MkLinux personality sources.
-
-And its history is decisive:
-
-```
- * 22-Jan-94  Johannes Helander (jvh) at Helsinki University of Technology
- *	Primarily try to exec /sbin/init. Only if that fails run
- *	/etc/init. But if that fails as well, try running /bin/sh on the
- *	console.
-```
-
-**Johannes Helander is the author of LITES.** This is the first program
-maintained by the same person who wrote the personality we are booting,
-doing exactly what LITES's `init_program_path` expects.
-
-`main.c` is 332 lines of init logic; `service.c` is 575 lines
-implementing the service-port protocol. It builds with
-
-```make
-LIBS   = -lservice -lthreads -lmach -lcmucs
-LDFLAGS += -static
-```
-
-`libservice` is in OSFMK at `mach_services/lib/libservice`, `-lthreads`
-maps to `libcthreads` and `libmach` we already build; `libcmucs` is in
-`user-mach4/lib/`. It uses pre-ANSI `varargs.h`, which will need the
-same treatment as LITES's `stdarg.h` did.
-
-**Caveat to settle first:** it is a Mach 4 program. `main.c`'s init
-logic is portable, but `service.c` speaks Mach 4's service and name port
-protocol, which may not match OSFMK 7.3's. Establish which parts carry
-over before committing to the whole thing.
-
-### 4a-alt. Or write a minimal one
-
-The blocker is that LITES execs `/mach_servers/mach_init` and no such
-program exists in any tree for i386.
-
-MkLinux's `mach_init` turns out not to be a Mach component at all -- its
-strings and source show an ordinary POSIX program that opens a console,
-tries `/etc/init`, `/bin/init`, `/sbin/init`, and falls back to spawning
-a shell. So this is a program to **write**, not to find. The MkLinux
-source is read-only reference (it carries no licence grant), but the
-design is that of Version 7 UNIX `init` and needs no borrowing.
-
-**Expect to hit first:** binary classification. The emulator currently
-reports our i386 ELF as `BT=20` (`hpelf`) because
-`liblites/exec_file.c` only recognises an ELF as its own when the entry
-is above `0x10000000`, and ours is at `0x8049320`. A first program built
-as i386 ELF will be misclassified the same way. xMach's tree shows the
-shape of the fix -- an `else` branch reading the program headers.
-
-Also in that file, and in both trees: `switch ((tmp >> 16) && 0x3ff)`,
-`&&` where `&` was meant.
-
-### 4b. Populate the root filesystem
-
-`debugfs` writes into an ext2 image with no mount and no privileges, so
-this needs no new tooling. What goes in is whatever the first program
-looks for.
-
-`tools/boot-ide.sh` should grow the population step so the working
-configuration is reproducible rather than hand-typed.
-
----
-
-## Correctness work, not blocking
-
-These replace things that work with things that are right. None is
-urgent; all are cheap and remove a workaround.
-
-**Use ext2 for the server volume, retire `mkminix.py` -- and with it,
-GPL code from the bootstrap task.**
-
-This started as a convenience and is now a licensing correction.
-`file_systems/minixfs/` contains three **GPL-licensed** files:
-
-```
-file_systems/minixfs/minix_ffs_compat.c
-file_systems/minixfs/minix_ffs_compat.h
-file_systems/minixfs/minix_fs.h
-```
-
-and `minixfs/machdep.mk` builds one of them into the library:
-
-```make
-MINIXFS_OFILES = minixfs.o minix_ffs_compat.o
-```
-
-So `libsa_fs.a`, and therefore **the bootstrap task binary**, contains
-GPL code today. `ext2fs/` is entirely GPL-free, and the bootstrap task
-already builds an ext2 reader and tries it before minix.
-
-Dropping minix removes the GPL dependency, removes a hand-written tool
-(`mkminix.py`, written only because `mkfs.minix` left Debian 13), and
-makes all three disks one filesystem type built with stock `mke2fs` and
-`debugfs`.
-
-The other GPL files in the tree are `file_systems/POWERMAC/COPYLEFT/hfs/`
--- nineteen of them, helpfully named, and **not built on i386**.
-Those are the only GPL sources in `src/`.
-
-**Originally:** The i386
-bootstrap task builds UFS, ext2 **and** minix readers
-(`file_systems/AT386/machdep.mk`) and tries them in order
-(`AT386/fs_switch.c`). `mkminix.py` exists only because `mkfs.minix`
-was dropped from Debian 13. An ext2 server volume would use stock
-`mke2fs` and `debugfs`, make all three disks one filesystem type, and
-remove a hand-written tool from the critical path.
-
-**Teach LITES's ext2 reader about `filetype`, retire `-O ^filetype`.**
-Our kernel's reader already handles it -- `file_systems/ext2fs/ext2_fs.h`
-splits `name_len` into `unsigned char name_len` plus
-`unsigned char file_type`. LITES's `server/ufs/ext2fs/ext2_fs.h` still
-has `__u16 name_len`. The two readers in this system disagree about the
-on-disk format; the fix is in-tree, permissively licensed, and makes
-stock `mke2fs` defaults work.
-
-**Fix `exec_file.c`'s `&&`.** Present in both LITES trees.
-
----
-
-## Later
-
-**Collocate LITES in the kernel.** A recovered `bootstrap.conf` shows
-MkLinux ran its personality **inside the kernel's address space**:
-
-```
--k -S 524288000 startup /dev/boot_device/mach_servers/vmlinux
-```
-
-`-k` sets `SERVER_IN_KERNEL_F` and `-S` gives the collocated map size
-(`bootstrap.c:784`). Configured entirely from `bootstrap.conf`, no code
-change. Worth trying once LITES boots properly -- it removes the IPC
-boundary between kernel and personality.
-
-**The kernel will not boot with 512 MB.** It prints the `cnvmem` line
-and stops. 64 MB and 128 MB work, so the limit is between 128 and 512;
-probably `vm_page_bootstrap` or `pmap` not scaling. Bracketed, not
-investigated.
-
-**ddb for live inspection.** `MACH_KERNEL_CONFIG=DEBUG` builds the
-in-kernel debugger; `tools/boot-debug.sh` runs it. It understands Mach's
-own types -- tasks, threads, ports, VM maps -- which the gdb stub
-cannot reach. Use it when a question needs live kernel state.
-
----
-
-## What the reference trees are for
-
-Full detail in `docs/lites-survey.md`. In short:
-
-| tree | use |
+| **R30** CI: build matrix, boot, markers | Nothing currently stops a change breaking the boot. Highest-leverage item in the repository, and the only defence against the scope risk in **P7**. |
+| **R32** replace `md` with `cc -MMD` | **Moved here from the build stage, and it belongs here.** `md` is the dependency generator; if it is wrong, a rebuild does not reflect the change you just made, and every fix in Stage 1 would be tested against a stale build. That is RULES 4.13 at the level of the build itself. It also removes a 2008 binary and **answers Q9 by construction**. |
+| **K46** in-kernel test harness | Modelled on XNU's `xnupost` (G112). **Needs no userland**, so it can land now rather than after the L-series, and CI can run it from the same boot. |
+| **R5** `DEVIATIONS.md` | The pristine baseline is identified: `mkunity-master/osfmk` differs from the tree in exactly the 16 files that are ours (G149). Diff against it and write the reason for each. |
+| **X19** take the IPC baseline | `net-latency-tools` is public domain and measures round-trip directly (G154). **Moved here: a baseline taken after the build and the defect work has already lost what it was supposed to measure.** Feed it to CI so drift is visible. |
+| **R35** import MK84's 128 manual pages | 15,006 lines, CMU permissive (G172), covering the entire external memory-manager protocol and port interface. The tree has one `.man` file. Costs a copy; gives every later argument a citable reference. |
+| **R7**, **R27**, **R12** licence, `copyright.osf`, principles | Settled by G66; write them down before the tree grows. |
+
+### The three afternoon experiments
+
+Each is a build-and-boot, each settles a premise that later stages rest
+on, and **each is far cheaper now than the work it could invalidate.**
+This is RULES 2.3 — check the premise — applied at the scale of the
+whole plan.
+
+| question | what it settles |
 |---|---|
-| MkLinux `osfmk/` | **our base.** Ahead of DR3: has multiboot, the QEMU floppy fix, `INTEL_PTE_GLOBAL` |
-| DR3 | later release but **behind our base** for i386; do not move to it |
-| `pmk1.1` | third Mach 3.0 PMK tree, cross-check only |
-| `linux/arch/osfmach3_i386` | a working personality on this kernel and architecture -- the closest analogue. **No licence grant: read only** |
-| xMach LITES | post-u3 fixes, notably ELF classification. **Read only** |
-| XNU, GNU Mach | incompatible licences. Design only, never copy |
+| **Q15** does `DEBUG+NORMA` still build? | **Moved here from Stage 9.** Nineteen NORMA configurations exist for i386 and none has been built in this revival (G95). The answer decides whether **D20**'s premise holds, whether Stage 13 is a revival or a reimplementation, and whether L23 and K49 carry the constraint that `object->memq` is iterated inside `xmm_user.c` and `vm_copy.c` (G124). Also surfaces the `FAST_IDLE` contradiction between `config.norma` and `config.mp`. |
+| **Q6**, **Q13** does `FAST+MP` boot under `-smp 2`? | **Moved here from Stage 8.** Answers whether SMP is a bring-up or a repair before the ~1,700-site lock conversion is scoped against it. |
+| **Q7** is the Hurd bootstrap graft droppable? | Half-answered already: pmk1.1 has no `boot_script.c` and a 917-line `bootstrap.c`, so the graft is MkLinux-era (G71). Confirming it now keeps K11 simple. |
 
-**The rule, without exception:** find what the build asks for, find what
-provides it, and if nothing does, build that. Never alias one name to a
-different thing. Audit any guess before it becomes load-bearing.
+**Also here, because they are repository work and block nothing:**
+**R1** delete the duplicate tree, **R2** vendor LITES in, **R3** + **R4**
+the boot test CI feeds, **R6** `.gitignore` and generated artefacts,
+**R8** `IMPORTS.md`, **R13** third-party import hygiene, **R16** the test
+plan, **R17** `mkroot` determinism, **R18** host-versus-target tools,
+**R19** `.gitattributes`, **R22** README accuracy, **R23** pinned
+versions recorded in-tree.
+
+**Exit condition:** a push that breaks the boot fails visibly; a rebuild
+provably reflects the change; the deviation record is complete; and the
+three premises are answered rather than assumed.
+
+---
+
+## Stage 1 — Fix what is broken now
+
+Small, bounded, and they are what the system gets wrong *today*. **They
+come before the build work**, not after: each is self-contained, each is
+user-visible, and none of them needs a hermetic build — only a
+trustworthy one, which Stage 0's **R32** now provides. Doing
+infrastructure while known defects sit is the wrong priority.
+
+Every item here has its diagnosis already recorded in the repository's
+`docs/current-blocker.md`; none needs new instrumentation beyond
+`printf`, which is why this stage does not wait for Stage 3's debugger.
+
+| item | note |
+|---|---|
+| **L47** `exec_file.c:273` `&&` where `&` was meant | One character. It collapses every machine-id case to 0 or 1. Found by the project while surveying xMach, which had not fixed it either (G180). |
+| **L43** console input reorders under burst | **The one real defect.** One burst in three; a displaced character once made the shell run `Esleep`. Control established, site identified (`tty_read_reply()`), first hypothesis named (replies dispatched from a pool, two buffers in `l_rint` at once). The measurement that settles it is one thread identity and one `data_count` per `printf`. |
+| **L45** root cannot be unmounted at shutdown | The three held buffers are ext2's pinned group-descriptor and bitmap buffers, not unwritten data. No data is lost; the filesystem is left marked not clean. |
+| **L46** console output interleaves between writers | Distinct mechanism from L43. Note the project's own correction: the earlier "two claimants" explanation was attributed to the wrong cause. |
+| **L44** build `procfs` | **The largest open item.** `ps` cannot work through `libkvm` here — LITES's `struct proc` carries `p_sigport`, `p_task`, `p_req_port`, `p_thread`, `p_servers`, so a 1994 binary reading by layout finds a different structure. `kernfs` is system variables, not processes. `procfs` is type 12 and is not built. |
+| userland breadth | Mechanical: the `NEED` list in `mkroot-netbsd.sh` is deliberately small. |
+
+**Exit condition:** the acceptance table passes with no blemishes beside
+it, and `ps` works.
+
+---
+
+## Stage 2 — Build from our own sources
+
+**Everything downstream is more trustworthy after this.** The build
+still depends on two prebuilt 2008 binaries and on the host's toolchain.
+Until that is gone, "it builds" means "it builds here" — which is
+tolerable while fixing known defects and not tolerable while porting a
+kernel to a new architecture.
+
+**R32 has already landed in Stage 0**, because dependency tracking is a
+prerequisite for trusting *any* rebuild, not just a hermetic one. What
+remains here is removing the binaries and the host dependency.
+
+| item | note |
+|---|---|
+| **R34** build ODE from its own source | It is in the collection: `buildtools/ode/bin` has `make` (25,032 lines), `md`, `genpath`, `makepath`, `release`, `wh`, all under the OSF Free Copyright (G139). **This unblocks R9, R20, R24 and R31 from one directory.** |
+| **R9**, **R20**, **R21** `migcom` and `config` from source | Five MIG sources exist; build the in-tree one — it is the MK 7.3 branch and uniquely carries the on-stack message optimisation (G168). Four `config` sources; 6.1's is the default (G175). 22 export headers are MIG *output* and regenerate. |
+| **R24** adopt `bmake` | The dialect check is done — ODE make is pmake, and every construct in the 11 `osf.*.mk` files is a bmake feature (G113). Only `.LINKS` needs verifying, and ODE's own source does not implement it. |
+| **R31** start the hermetic `tools/` | Aim at NetBSD's *property*, not its 131-entry size: strict POSIX conformance does most of the work, leaving the cross-compiler, `mig`/`migcom` and `config` — three or four entries. |
+| **K26** pinned cross toolchain | Needs `makedefs/osf.extra.mk`, which the tree lacks and every built export tree carries: four lines setting the compiler's own include path (G159). Take NetBSD's `common/lib/libc/quad` for the 64-bit helpers a `-nostdlib` link needs (G94). |
+| **K31** `sys/tree.h` and the freestanding C utilities | The tree has no `vsnprintf`, `snprintf`, `strtoul`, `memmove`, `strlcpy`, no trees, `crc32` only inside two NIC drivers (G78). **Every subsystem added after this stops improvising around the gaps.** |
+
+**With them:** **R25** pin the C standard — **including the generators
+(P3)**, since MIG emits ANSI but `vnode_if.sh` emits K&R; **R15** history
+blocks and `_t` → `struct` in headers, after R5 exists to replace what
+those blocks record; **R28** import 6.1's `ipc_test`, `xptest` and the
+fifteen absent commands, which are the consumers that define what a
+bootstrap libc must provide; **K42** records XNU's `config` as the
+fallback if 6.1's proves unbuildable.
+
+**Exit condition:** a clean clone builds the whole system on a host with
+a C compiler and a shell, and nothing in the build is a binary nobody can
+rebuild.
+
+---
+
+## Stage 3 — Eyes
+
+**Everything after this is harder without it.** Doing it here, rather
+than when something breaks, is the difference between a diagnosis and a
+week.
+
+| item | note |
+|---|---|
+| **K48** remote kernel debugging via **TTD** | CMU's own, permissive: `default.MK84/kernel/ttd`, 4,454 lines, a complete protocol — connect, read, write, thread enumeration, breakpoints, single-step — over raw Ethernet, written for this kernel family (G161). **This supersedes referencing XNU's APSL `kdp`, and with it the case for writing a disassembler** (G120: no kernel disassembler in 7.3, XNU, NetBSD, FreeBSD or OpenBSD decodes SSE). |
+| **K34** `ddb` symbol handling | The BSD debuggers descend from Mach's ddb but *stripped* the Mach parts — `db_sym.c` is 1,580 lines here and 489 in NetBSD (G119). xnu-123.5 shares 22 of 22 files and is the reference; the work starts from our own file. |
+| **R26** assembly line numbers | Pairs with both of the above. |
+| **K19**, **K23** immediate console, unique panic strings | Cheap, and they make every later failure legible. |
+| **X19** in-kernel profiling | The *baseline* was taken in Stage 0. What belongs here is MK84's `pc_sample.c` (327 lines, permissive) — statistical profiling inside the kernel, which the tree has no counterpart for (G173), and which turns "IPC costs N" into "and here is where the N goes". |
+| **R29** the `regress/` tree | OpenBSD's proportions — 1,119 tests from a `share/mk` of 15 files, plain make, no framework (G112). Needs a userland, which Stage 2 provides. |
+
+**Exit condition:** a kernel fault can be attached to from a host, and
+IPC cost has a recorded baseline.
+
+---
+
+## Stage 4 — Read before building
+
+Cheap, and doing it afterwards wastes the work. Each of these changed a
+design once already.
+
+| item | what it settles |
+|---|---|
+| **L41** POE | A complete permissive personality at 26,000 lines against LITES's 226,000 — and, because its emulator *is* UX 28's (G148), the other half of the same original conversation. Read `ufs_pager.c` before L23, `bsd_select.c` before L35, the exception path before L11. |
+| **L42** the four glue layers | UX 28, POE, LITES, and MkLinux's `osfmach3/` — with `inode_pager.c` (1,064 lines) and `fake_interrupt.c` solving L23's and X12's hardest parts a fourth way (G143). Diff the two MkLinux snapshots against each other for what turned out volatile in practice (G178). |
+| **L40** XNU's `bsd/` | The only existing example of a *modern* BSD attached to *this* Mach: `proc`↔`task`, `uthread`↔`thread`, signals at the AST boundary, vnode pager onto memory objects (G105). The mappings land in our emulator and RPC layer instead of direct calls. |
+| **K52** MK67 | One release short of our kernel's fork point, on the direct line, **and permissive** — 235 of its files carry the full CMU grant (G144). Use wherever "what did this look like before OSF" matters. Note `ipc/` and `vm/` barely moved (G174), so the answer there is "almost exactly the same". |
+| **K43**, **K40**, **K41**, **K45** the Apple lineage | Rhapsody is MK 6.1 with six years of i386 work; xnu-123.5 is *our* files six years on, still 32-bit; modern XNU is the same lineage at 64 bits; and the repository holds 155 tags, so a subsystem's evolution can be walked release by release rather than inferred from endpoints (G101, G100, G109). |
+| **X21**, **X25**, **X26**, **X20** | Mach-US built this design in 1994; the netmsgserver did cross-node IPC as a *server over TCP* with authentication and byte-swapping (G106); XNU rewrote the subsystems we are about to rework; FLIPC is the in-tree prior art. |
+
+**Exit condition:** nothing. This stage is reading, and its output is
+better decisions in Stages 5–10.
+
+---
+
+## Stage 5 — Hardware that works
+
+| item | note |
+|---|---|
+| **K24** NE2000 device-table entry | A vendor bug: `autoconf.c:594` wires the NIC's interrupt to `at3c501intr`; the correct handler is `neintr`. Then slirp with a static address. |
+| **K18** Utah's `nhd.c`, LBA | |
+| **R11** retire `mkminix.py` and the minix reader | |
+| **K25** enable PCI | |
+
+**Blocks:** X22's transport (KKT rides an Ethernet interface), and
+anything that wants a network.
+
+---
+
+## Stage 6 — Platform discovery
+
+The tree has no ACPI, no LAPIC beyond `mp_v1_1.c`'s inline setup, no
+timecounter abstraction and no GPT.
+
+| item | note |
+|---|---|
+| **R10** the 512 MB ceiling | |
+| **K8c**, **K8d**, **K8a** ACPI tables | **Use uACPI, not ACPICA** — MIT rather than dual BSD/GPL, table-only subset ≈3,600 lines, ships its own overridable stdlib, and **avoids recursion deliberately because kernel stacks are tiny** (G81). PureDarwin integrated it into an XNU-family kernel, which is evidence it fits (G111). Size target: Haiku's 251-line boot-path version; algorithm reference: FreeBSD 6.0's `madt.c` (G75). |
+| **K9a**, **K9** LAPIC, IOAPIC, MSI, x2APIC | Lift out of `mp_v1_1.c`. Register headers from NetBSD 5.0 or later — earlier ones carry the advertising clause. |
+| **K11** Multiboot2 | **An upgrade, not an implementation**: `start.S:345` already emits `0x1BADB002` with the checksum, and `model_dep.c` handles `MULTIBOOT_MODS` (G167). Read Bryan Ford's original 1996 proposal first — it is in the collection, and boot modules exist in the standard *because of Mach*. |
+| **K10** + **K32** deadline timers over timecounters | FreeBSD's `kern_tc.c` is the standard answer and the tree has three unconnected `rtclock.c` files with no abstraction (G78). Underpins L18 and `clock_gettime`. |
+| **K33** GPT | The tree knows MBR and BSD labels only. Every modern disk image is GPT. |
+| **K8**, **K8b** ACPI in the kernel, and the interpreter question | K8b only if something needs AML; the table subset is what K8d/K8a deliver. |
+| **K44** Rhapsody's `boot-2/i386` | Recorded as the in-tree self-hosted bootloader alternative to Limine. Ranking unchanged: Limine first. |
+| **K35** entropy, **K29** runtime code patching | K29 is 74 lines in Haiku, and both SMAP and the mitigations plug into it — so it comes before them. |
+
+---
+
+## Stage 7 — pmap, and the one real security gap
+
+| item | note |
+|---|---|
+| **K36** PAE + NX | **The only item in this document that is a security gap rather than a performance one.** On 32-bit x86 the NX bit exists *only* with PAE page tables, so these are one task — and without them W^X on i386 is unachievable. **Gates K15.** |
+| **K37** pmap performance and structure | No single donor (G137): FreeBSD for superpages, pv-chunks, global pages and `pmap_kenter`; **XNU alone for PCID**; NetBSD or OpenBSD for `pmap_growkernel`. And the distributed code barely touches pmap — XMM makes four calls, DIPC one — so **this is the one major subsystem where any donor is structurally safe.** |
+| **K38** TLB shootdown as its own subsystem | The difference between SMP that boots and SMP that is correct. |
+| **K15** security baseline, **K51** port guards | Note the tree already has 8 bits of name generation (G135), so stale-name detection exists; guards add ownership. `immovable` matters *more* here than in XNU, because DIPC moves rights between nodes (G136). |
+| **K30** speculation mitigations | Deferrable while QEMU-only; not deferrable on metal. |
+
+---
+
+## Stage 8 — SMP, done correctly
+
+| item | note |
+|---|---|
+| **L50** convert `simple_lock` + `spl` to IPL-carrying mutexes | **Sequence *with* K14, not after**, and scoped against Q6/Q13's answer from Stage 0. ~1,700 `spl` calls and 1,177 simple-locks (G128). Take **NetBSD's model, not FreeBSD's**: fuse the IPL into the mutex, keep the `spl` calls that genuinely mean "do not interrupt me here" (G133). The reason it is mandatory: on SMP a `simple_lock` without interrupt discipline deadlocks against its own CPU's handler, and `spl` alone cannot exclude another CPU. |
+| **K14a**, **K14** MP bring-up | ACPI-first with MP-table fallback, which all four reference systems use. |
+
+---
+
+## Stage 9 — Kernel primitives the personality needs
+
+**Q15 was answered in Stage 0.** If it came back positive, K12 prunes
+only dead architectures and the constraint on L23/K49 stands. If
+negative, see "the three things that would change this order".
+
+| item | note |
+|---|---|
+| **K12** prune dead ports only | **Revised by D20**: delete `hp_pa`, `ppc`, the Sequent directories. **Keep `dipc`, `xmm`, `flipc`, `uk_xkern`, `i386/kkt`.** |
+| **K1**–**K7**, **K20** | |
+| **K2**, **K3**, **K50** direct traps | XNU added exactly the traps planned here, then generalised them (G130). **Hard requirement from G134: each trap resolves a port *name*, and DIPC delivers to kernel objects from remote nodes — so every trap must detect a proxy and fall back to the message path.** XNU's shape is right and omits the else branch, because XNU has no remote objects. |
+| **K22**, **K17**, **K21** | |
+| **K39** the APSL quarantine mechanics | Only if any APSL file is adopted (D21): dedicated subtree, Exhibit A duplicated, changes dated, source published, per-file record in `IMPORTS.md`. |
+| **K47** port XNU's applicable `tools/tests` | `MPMMTest` → X19's benchmark, `TLBcoherency` → K38's correctness test. |
+
+---
+
+## Stage 10 — The BSD core
+
+The largest stage. Five sub-stages, each a milestone in its own right.
+
+**10a — clear the ground.** **L38** settle rework/replace/delete before
+any file-level work; **L37** delete `netiso`, `netccitt`, `netns` —
+47,300 lines, 27% of the BSD half; **L39** batch the VOP changes.
+
+**10b — the model.** **L1** exec as a new task; **L2** freeze the ABI
+types — **and settle the kernel's 32-bit clock with it (P2)**, since
+`time_value_t` is `integer_t seconds` and sits in `mach_host.defs`, so a
+64-bit `time_t` in LITES does not save the kernel boundary; then the
+thread split **L3**–**L6**.
+
+**10c — readiness and signals.** **L35** generalise the readiness model
+*before* the signal core **L7**–**L12**. XNU's `waitq.c` is the worked
+version of wait-queue sets with prepost (G117); POE's `bsd_select.c` is
+the small one.
+
+**10d — threads and time.** **L13**–**L15**, **L21**, **L22**, **L25**,
+**L27**; **L16** retire the
+BSD scheduler — and note MK84 has a ~7,400-line **permissive pluggable
+policy framework** with real-time disciplines, kernel-side hooks
+included (G162, G173); **L17** retire `spl` on the LITES side; **L18**
+Mach clock alarms; **L26** devfs — **donor found**: xMach's LITES carries
+`devfs_vfsops.c` + `devfs_vnops.c`, 1,105 lines, Regents-licensed and
+written against LITES's own VFS (G153).
+
+**10e — the POSIX surface.** **L28** exec stack and auxv — **already
+written**: xMach's `e_linux_trampoline.c` carries the full auxiliary
+vector under Helander's own grant (G160, with the provenance caveat in
+G180); **L29** `*at()`; **L30** `poll`; **L31** record locks; **L32**
+terminals and job control; **L33** `sysctl`; **L34** `statvfs`; **L36**
+errno audit; **K49** the radix trie — **only after Q15 and X22**, because
+`object->memq` is iterated directly inside `xmm_user.c` and `vm_copy.c`
+(G124); **L23** `MAP_SHARED` coherence, the hardest item in the project;
+**L24** `shm_open`; then the imports **L19** VFS and **L20** network
+stack.
+
+---
+
+## Stage 11 — Userland and ABI
+
+**U1** (the NetBSD 1.0 userland) and **U2** (`mach_init`) are **done** —
+`mkroot-netbsd.sh` builds the root from the real sets, and `mach_init` is
+ported and committed though not on the critical path, because LITES's
+`SECOND_SERVER` `-i` flag runs `/sbin/init` directly. **P1 is superseded
+by that** (H11).
+
+**U3** ELF classification (the one part of the old Phase 3 still open);
+**U4** `e_netbsd_sysent` — with **P5**'s rule, modern types in the server
+and translation at the emulator boundary; **U5** NetBSD libc whole;
+**U6** + **U6a** libpthread and its LWP bridge; **U7** dynamic linking — **the loader half exists** in
+xMach's `emul_exec.c` (`PT_INTERP`, `load_bias`, `interp_load_addr`),
+where ours has none; **U8** conformance runs, the headline metric from
+here on; **U9**–**U11** pkgsrc; **U12** early `bsd.port.mk` only if a
+bridge is needed; **U13**, **U14** the bootstrap libc, minimum only.
+
+**D19 governs this whole stage**: source compatibility, not binary. Skip
+NetBSD's 65 versioned syscall entries, choose 64-bit types from the
+start, and let libc call the routing library directly rather than trap.
+
+---
+
+## Stage 12 — The big ports
+
+**K28** split x86-generic from i386-specific **before** K13 — the
+difference between "add an amd64 directory" and "duplicate and diverge".
+**K27** convert non-essential assembly to C: the core MD path is 33.1%
+assembly against NetBSD's 15.3% and FreeBSD's 3.3% (G77), and this
+pre-pays part of K13. Then **K13** x86_64, with **K41** as the reference
+and **R33**'s MIG delta read first — our `migcom` contains zero
+occurrences of "64". Then **K16** userland drivers — **D27** now permits
+Utah's GPL Linux emulation, preferably hosted in a *separate driver
+server* over Mach IPC so the kernel stays permissive; **R14** boot-module tooling, when the system first leaves the emulator, and **X1**, with
+**Q4** and **Q16** spiked first, because `SECOND_SERVER` does not work on
+i386 as it stands (G169).
+
+---
+
+## Stage 13 — Distributed
+
+**`DISTRIBUTED.md`** holds the design and the ordering within the stage.
+The sequence at a glance: read first (**X21**, **X25**, **X26**, **X20**),
+then **X22** revive NORMA in CI — **porting from 6.1's `norma/`, not
+CMU's MK84**, because 6.1 is a strict superset already carrying the
+`svm_*` files 7.3 expects and an `ipc_ether.c` 276 lines further
+developed (G171) — then **X23** the gaps NORMA does not fill (membership,
+failure detection, **cross-node identity**, time), **X2**–**X18** the
+server split, and **X24** the distributed filesystem, with **9P** as the
+protocol and NetBSD's permissive `sys/coda` as the boundary mechanism
+(G118).
+
+---
+
+## The open questions, and where each is answered
+
+| question | where |
+|---|---|
+| **Q9** does editing a header rebuild dependents? | **Stage 0** — answered by construction once R32 lands. |
+| **Q6**, **Q13** does FAST+MP boot under `-smp 2`? | **Stage 0** — an afternoon, and it scopes Stage 8. |
+| **Q15** does `DEBUG+NORMA` build? | **Stage 0** — it settles D20's premise, which Stages 9, 10e and 13 all rest on. |
+| **Q7** drop the Hurd bootstrap graft? | **Stage 0** — half-answered by G71; confirming it keeps K11 simple. |
+| **Q1**, **Q2**, **Q3** static binary loading, pre-`main` calls, `_lwp_ctl` | Stage 11, with U4/U5. |
+| **Q4**, **Q16** rump LWP bridge; how a second server gets its ports on i386 | Stage 12, **before** X1. |
+| **Q5** keep migrating RPC? | Stage 13 — X8 argues yes; the benchmark decides. |
+| **Q8** NetBSD subtree resync | Stage 10e, with L19/L20. |
+| **Q10** stock binary packages | **Downgraded by D19**; replaced by "does pkgsrc build from source". |
+| **Q11**, **Q12** routing library rtld-safety; wider trailer versus kmsg cache | Stage 13, with X9/X13 and X14. |
+| **Q14** POE's internals | **Answered** (G164): real external pagers, **read-only** — no writing to disks or filesystems, no sockets. |
+
+---
+
+## The three things that would change this order
+
+1. **Q15 comes back negative in Stage 0.** If `DEBUG+NORMA` cannot be
+   built, **D20's premise weakens**: Stage 13 becomes a reimplementation
+   rather than a revival, the constraint on L23 and K49 relaxes, and K12
+   has a real argument for pruning further. Because this is now answered
+   in Stage 0 rather than Stage 9, the whole back half of the plan can be
+   re-shaped before any of it is built — which is the entire reason the
+   question moved.
+2. **The benchmark (X19) contradicts X8.** If migrating RPC is not
+   measurably faster in this configuration, Q5 resolves the other way and
+   K50's trap work becomes more important, not less.
+3. **Real hardware enters the picture.** P6 stands: everything is tested
+   against one machine model, and Stage 6 is exactly where that bites.
+   K30 moves from deferrable to required the day this runs on metal, and
+   Stage 6's discovery paths need their fallbacks exercised rather than
+   assumed.
+
+---
+
+## What changed in this revision, and why
+
+Three moves, each made on a dependency that had been missed rather than
+on a preference:
+
+**R32 moved from the build stage into Stage 0.** `md` is the dependency
+generator. If it is wrong, a rebuild does not reflect the change just
+made — so every fix in the defect stage would have been tested against a
+possibly-stale build. Trusting a rebuild is a prerequisite for trusting
+*any* fix, which makes it infrastructure of the same kind as CI rather
+than part of the toolchain work.
+
+**The defect stage moved ahead of the build stage.** The five live
+defects are self-contained, user-visible, and need only a trustworthy
+build — not a hermetic one. Doing toolchain work while known defects sit
+is the wrong priority, and the original ordering had no dependency
+justifying it.
+
+**Three afternoon experiments moved into Stage 0.** Q15, Q6/Q13 and Q7
+each settle a premise that later stages rest on, and each costs a
+build-and-boot. Q15 in particular decides whether Stage 13 is a revival
+or a reimplementation and whether L23 and K49 carry a constraint —
+answering it at Stage 9, as originally placed, would have meant
+discovering at Stage 9 that the previous four stages had been planned
+around a premise that did not hold. **The cheapest thing in this
+document is the experiment that invalidates a plan before it is built.**
