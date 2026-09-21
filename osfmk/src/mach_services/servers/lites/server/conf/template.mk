@@ -81,7 +81,14 @@ VOLATILE        ?=
 # compile. -Ulinux: tools/lites/build-lites.sh passes it because gnu89
 # predefines linux=1, and LITES tests that name.
 #
-DEFINES		= -nostdinc -DMACH -DLITES -Ulinux ${MASTER_DEFINES} ${LOCAL_DEFINES} ${IDENT} -DKERNEL ${XX} $(VOLATILE)
+# -I- stays here, where Helander put it: this template sets
+# _CC_GENINC_=-I., replacing the osf.osc.mk rule that adds -I- to every
+# other compile, so DEFINES is the only place the server gets it.
+# Without it GCC searches each source's own directory first, and
+# ufs/ufs/ufs_inode.c's "quota.h" finds ufs/ufs/quota.h instead of the
+# option header of that name.
+#
+DEFINES		= -nostdinc -I- -DMACH -DLITES -Ulinux ${MASTER_DEFINES} ${LOCAL_DEFINES} ${IDENT} -DKERNEL ${XX} $(VOLATILE)
 #
 # The line below should not be here; it overrides the external default.
 # BUT ... ux is known not to build with -O2 ...
