@@ -151,6 +151,16 @@ typedef thread_port_array_t thread_array_t;
 typedef mach_port_t thread_t;
 typedef mach_port_t task_t;
 
+/*
+ * Untyped IPC names the MIG error reply mig_reply_error_t: a header,
+ * an NDR record and a RetCode. The typed-IPC name was
+ * mig_reply_header_t, with a mach_msg_type_t where the NDR record now
+ * sits. The server touches that member (RetCodeType) only inside its
+ * #else arms for typed IPC, which UNTYPED_IPC compiles out, so the
+ * two are interchangeable for every use that remains.
+ */
+typedef mig_reply_error_t mig_reply_header_t;
+
 #define MUTEX_NAMED_INITIALIZER(Name) MUTEX_INITIALIZER
 #define CONDITION_NAMED_INITIALIZER(Name) CONDITION_INITIALIZER
 
