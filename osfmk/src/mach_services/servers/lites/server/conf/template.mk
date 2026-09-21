@@ -73,7 +73,15 @@ MKODIRS 	= serv/
 
 VOLATILE        ?=
 #XX		= -DBSD=44 -DMACH_IPC_COMPAT=0
-DEFINES		= -nostdinc ${MASTER_DEFINES} ${LOCAL_DEFINES} ${IDENT} -DKERNEL ${XX} $(VOLATILE)
+#
+# -DMACH -DLITES: the GNU route adds them to every compile
+# (conf/Makerules: DEFINES += -DMACH -DLITES). LITES's headers depend
+# on them -- struct buf's b_reply_port and the kernel's errno values
+# sit under #ifdef LITES -- and without them serv/block_io.c does not
+# compile. -Ulinux: tools/lites/build-lites.sh passes it because gnu89
+# predefines linux=1, and LITES tests that name.
+#
+DEFINES		= -nostdinc -DMACH -DLITES -Ulinux ${MASTER_DEFINES} ${LOCAL_DEFINES} ${IDENT} -DKERNEL ${XX} $(VOLATILE)
 #
 # The line below should not be here; it overrides the external default.
 # BUT ... ux is known not to build with -O2 ...
