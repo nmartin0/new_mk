@@ -50,58 +50,22 @@ EXPDIR		= /lites/serv/
 LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
 VPATH		= ${LITES_TOP}server/serv
 INCFLAGS	+= -I.. -I${LITES_TOP}server -I${LITES_TOP}
-INCDIRS		:= -I. -I${EXPORTBASE}/lites ${INCDIRS}
+INCDIRS		:= -I${EXPORTBASE}/lites ${INCDIRS}
 
-MIGFLAGS = -DCOMPAT_43 -DEMULATOR
-MIG_HDRS = bsd_1.h
-
-INCLUDES	= bsd_types.h bsd_types.defs bsd_1.defs ${MIG_HDRS}
+#
+# This directory exports the interface's static files only. It used
+# also to generate bsd_types_gen.h and, from it, a MIG header bsd_1.h
+# to export -- one of three places the tree generated bsd_types_gen.h,
+# with the server and the emulator each making their own as well, a
+# pattern inherited from UX 28. The header is now generated once, in
+# the server's configured build, which is the only place that has the
+# configured option headers its compilation needs, and published from
+# there; this is how OSF's own tree shares a generated header
+# (mach_kernel/mach's MIG_HDRS; libpthreads's pthread_impl.h, made by
+# a host program as this one is). Nothing in LITES used the exported
+# bsd_1.h: the emulator's own MIG step writes one, as MIG always does.
+#
+INCLUDES	= bsd_types.h bsd_types.defs bsd_1.defs
 ILIST		= ${INCLUDES}
 
-bsd_1.h : bsd_types_gen.h
-
-# bsd_types_genX needs to be preprocessed as for the target machine but run
-# on the host machine.  In order to get the correct predefines it is
-# necessary to use the target preprocessor and target include directories.
-
-PROGRAMS	= bsd_types_gen
-
-bsd_types_gen_OFILES	= xxx_bsd_types_gen.o
-bsd_types_gen_CCTYPE	= host
-xxx_bsd_types_gen.o_CCTYPE	= host
-
-ansi_CPP	?= ${ANSI_CC} -E
 .include <${RULES_MK}>
-
-#
-# The generator's preprocessing reaches <machine/ansi.h> through
-# sys/types.h. include/Makefile makes and exports a machine link, but
-# ODE exports a directory's subdirectories before its own files, so
-# that link does not exist yet when this directory runs. Make a local
-# one beside the generator instead -- the compile searches -I. first
-# -- as the GNU build's configure does in its build directory. It
-# points at the machine headers already exported: ${KERN_MACHINE_DIR}
-# is the first of include/'s EXPINC_SUBDIRS, so it is exported before
-# this directory runs. Not ${LITES_TOP}: that is relative, correct from
-# the source directory, but this link is made in the object directory,
-# where the same path lands in include/${KERN_MACHINE_DIR}'s object
-# directory, which holds no headers.
-#
-KERN_MACHINE_DIR ?= ${MACHINE}
-xxx_bsd_types_gen.c : machine
-machine:
-	${LN} -s ${EXPORTBASE}/lites/${KERN_MACHINE_DIR} machine
-
-xxx_bsd_types_gen.c : bsd_types_gen.c
-	${ansi_CPP} -P ${_CCFLAGS_} ${bsd_types_gen.c:P} > \
-		 xxx_bsd_types_gen.c
-	cat /dev/null >> bsd_types_gen.d
-	sed 's/^bsd_types_gen\.o/xxx_bsd_types_gen.c/' \
-			bsd_types_gen.d > xxx_bsd_types_gen.c.d
-	${RM} bsd_types_gen.d
-	
-bsd_types_gen.h : bsd_types_gen
-	./bsd_types_gen > bsd_types_gen.h
-
-
-
