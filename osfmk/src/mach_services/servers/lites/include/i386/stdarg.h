@@ -36,18 +36,29 @@
 #ifndef _STDARG_H_
 #define	_STDARG_H_
 
-/* CONTROL: the ORIGINAL 1994 definitions, no compiler builtins. */
-typedef char *va_list;
+/*
+ * The compiler's own variable-argument machinery, defined as FreeBSD
+ * (sys/sys/_stdarg.h), NetBSD (sys/sys/stdarg.h) and Linux
+ * (include/linux/stdarg.h) define it in-tree, and as every XNU since
+ * 2000 gets it from the compiler's header. These few lines of standard
+ * names are credited, not licensed (D30).
+ *
+ * The 1994 definitions they replace took the address of the last named
+ * parameter and walked up the stack from it. That holds only when the
+ * compiler neither inlines nor rearranges a variadic function, which
+ * GCC does not promise: at -O2 it inlined kern/subr_prf.c's printf()
+ * into panic(), in the same file, va_start then pointed past a
+ * temporary, and every panic lost its message (L49, G186). With the
+ * builtins the compiler knows the function is variadic.
+ *
+ * On i386, __builtin_va_list is char *, so <machine/ansi.h>'s
+ * _BSD_VA_LIST_ still names the same type.
+ */
+typedef __builtin_va_list va_list;
 
-#define	__va_promote(type) \
-	(((sizeof(type) + sizeof(int) - 1) / sizeof(int)) * sizeof(int))
-
-#define	va_start(ap, last) \
-	(ap = ((char *)&(last) + __va_promote(last)))
-
-#define	va_arg(ap, type) \
-	((type *)(ap += sizeof(type)))[-1]
-
-#define	va_end(ap)
+#define	va_start(ap, last)	__builtin_va_start((ap), (last))
+#define	va_arg(ap, type)	__builtin_va_arg((ap), type)
+#define	va_end(ap)		__builtin_va_end(ap)
+#define	va_copy(dest, src)	__builtin_va_copy((dest), (src))
 
 #endif /* !_STDARG_H_ */

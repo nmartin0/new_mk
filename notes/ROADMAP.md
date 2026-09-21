@@ -167,6 +167,7 @@ week.
 | **K19**, **K23** immediate console, unique panic strings | Cheap, and they make every later failure legible. |
 | **L51** nine `cpp` errors on every LITES build | Noise from comments in `conf/files`. Cheap, and it belongs here because it hides real errors from anyone reading a build log. |
 | **L49** a LITES panic can print an empty message | Seen once on a wrong invocation: `panic:` with nothing after it, twice. Belongs beside K23 — a panic that cannot say why defeats the rest of this stage. |
+| **K53** `libsa_mach`'s varargs | The same 1994 `va_start` as the one behind L49, in OSF's standalone library. Check whether GCC inlines any of its variadic functions; it is the same kind of defect, and cheap to establish. |
 | **X19** in-kernel profiling | The *baseline* was taken in Stage 0. What belongs here is MK84's `pc_sample.c` (327 lines, permissive) — statistical profiling inside the kernel, which the tree has no counterpart for (G173), and which turns "IPC costs N" into "and here is where the N goes". |
 | **R29** the `regress/` tree | OpenBSD's proportions — 1,119 tests from a `share/mk` of 15 files, plain make, no framework (G112). Needs a userland, which Stage 2 provides. |
 
