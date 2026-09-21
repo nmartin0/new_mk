@@ -38,6 +38,7 @@
 #	Date:	May 1994
 #
 
+target_cpu	?= ${MACHINE}
 VPATH		= ${target_cpu}:extra:programs
 
 EXPINC_SUBDIRS	= sys

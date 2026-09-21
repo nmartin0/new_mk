@@ -26,6 +26,7 @@
 
 LIBNAME=lites
 
+target_cpu	?= ${MACHINE}
 VPATH		= ${target_cpu}
 
 LIBRARIES	= lib${LIBNAME}.a

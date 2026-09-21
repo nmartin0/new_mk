@@ -101,6 +101,7 @@ INCFLAGS	= -I.. -I../../include
 
 INCDIRS         := -I${EXPORTBASE}/lites ${INCDIRS}
 
+target_cpu	?= ${MACHINE}
 .if (${target_cpu} == "mips" || ${target_cpu} == "i386" || ${target_cpu} == "ns532")
 USE_LIBPROF = ${LIBPROF1}
 .else

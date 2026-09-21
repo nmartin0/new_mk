@@ -37,6 +37,7 @@
 #
 
 MASTER		= MASTER
+target_cpu	?= ${MACHINE}
 MASTER_TM	= ${target_cpu}/MASTER
 MASTER_LOCAL	= MASTER.local
 MASTER_TM_LOCAL	= ${target_cpu}/MASTER.local
