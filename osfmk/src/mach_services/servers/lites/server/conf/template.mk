@@ -188,18 +188,9 @@ _CC_GENINC_=-I.
 UX_LDFLAGS	?= ${${TARGET_MACHINE}_LDFLAGS:U${LDFLAGS}}
 
 NEWVERS_DEPS = \
-	conf/version.major \
-	conf/version.variant \
-	conf/version.edit \
-	conf/version.patch \
-	conf/newvers.sh	\
-	conf/copyright
+	../../conf/newvers.sh \
+	../../conf/copyright
 
-VERSION_FILES_SOURCE = \
-	${conf/version.major:P} \
-	${conf/version.variant:P} \
-	${conf/version.edit:P} \
-	${conf/version.patch:P}
 
 
 ${VMUNIX} : ${PRELDDEPS} ${LDOBJS} ${LDDEPS} \
@@ -228,7 +219,13 @@ CRT	= ${CRT0}
 LINKSERVER: .USE
 	@echo "creating vers.o"
 	@${RM} ${_RMFLAGS_} vers.c vers.o
-	@sh ${conf/newvers.sh:P} ${conf/copyright:P} `cat ${VERSION_FILES_SOURCE}` ${VERSION}
+	@# The maintained conf/newvers.sh, from LITES's top -- ../../conf/,
+	@# since ODE resolves a relative name against this directory's source
+	@# counterpart, server/<config>, as Helander's emulator Makefile
+	@# reaches ../server/kern/ -- with the GNU route's arguments. Not
+	@# server/conf/newvers.sh: Helander's own script, which takes other
+	@# arguments and writes a version string the port's compiler rejects.
+	@sh ${../../conf/newvers.sh:P} ${../../conf/copyright:P} Lites ${VERSION} ${CONFIG}
 	@${_CC_} -c ${_CCFLAGS_} vers.c
 	@${RM} -f ${VMUNIX} ${VMUNIX}.out ${VMUNIX}.unstripped
 	@echo "loading ${VMUNIX}"
