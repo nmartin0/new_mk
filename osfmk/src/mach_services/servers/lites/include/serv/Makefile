@@ -50,7 +50,7 @@ EXPDIR		= /lites/serv/
 LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
 VPATH		= ${LITES_TOP}server/serv
 INCFLAGS	+= -I.. -I${LITES_TOP}server -I${LITES_TOP}
-INCDIRS		:= -I${EXPORTBASE}/lites ${INCDIRS}
+INCDIRS		:= -I. -I${EXPORTBASE}/lites ${INCDIRS}
 
 MIGFLAGS = -DCOMPAT_43 -DEMULATOR
 MIG_HDRS = bsd_1.h
@@ -72,6 +72,25 @@ xxx_bsd_types_gen.o_CCTYPE	= host
 
 ansi_CPP	?= ${ANSI_CC} -E
 .include <${RULES_MK}>
+
+#
+# The generator's preprocessing reaches <machine/ansi.h> through
+# sys/types.h. include/Makefile makes and exports a machine link, but
+# ODE exports a directory's subdirectories before its own files, so
+# that link does not exist yet when this directory runs. Make a local
+# one beside the generator instead -- the compile searches -I. first
+# -- as the GNU build's configure does in its build directory. It
+# points at the machine headers already exported: ${KERN_MACHINE_DIR}
+# is the first of include/'s EXPINC_SUBDIRS, so it is exported before
+# this directory runs. Not ${LITES_TOP}: that is relative, correct from
+# the source directory, but this link is made in the object directory,
+# where the same path lands in include/${KERN_MACHINE_DIR}'s object
+# directory, which holds no headers.
+#
+KERN_MACHINE_DIR ?= ${MACHINE}
+xxx_bsd_types_gen.c : machine
+machine:
+	${LN} -s ${EXPORTBASE}/lites/${KERN_MACHINE_DIR} machine
 
 xxx_bsd_types_gen.c : bsd_types_gen.c
 	${ansi_CPP} -P ${_CCFLAGS_} ${bsd_types_gen.c:P} > \
