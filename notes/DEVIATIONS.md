@@ -10,7 +10,7 @@ baseline does not have it, **removed** when only the baseline does.
 
 | part | baseline | modified | new | removed |
 |---|---|---|---|---|
-| OSFMK (`osfmk/src/`, without LITES) | `mkunity-master/osfmk/src/` in mach_stuff at `78cab0993cbf` (G149) | 22 | 9 | 0 |
+| OSFMK (`osfmk/src/`, without LITES) | `mkunity-master/osfmk/src/` in mach_stuff at `78cab0993cbf` (G149) | 22 | 139 | 0 |
 | LITES (`osfmk/src/mach_services/servers/lites/`) | its vendor import, "lites: vendor LITES 1.1.u3 in as a server of the tree" | 69 | 3 | 2 |
 
 ## OSFMK
@@ -42,7 +42,7 @@ baseline does not have it, **removed** when only the baseline does.
 | `mach_services/lib/libmach/mach_init.c` | 2026-09-18 libmach_sa: build from mach_init.o and export mach_init |
 | `mach_services/servers/Makefile` | 2026-09-21 lites: build LITES as part of the tree, and boot it from there |
 
-### New files (9)
+### New files (139)
 
 | file | commits that changed it |
 |---|---|
@@ -51,6 +51,136 @@ baseline does not have it, **removed** when only the baseline does.
 | `mach_kernel/ipc/ipc_bench.c` | 2026-09-22 kernel: the IPC baseline, measured in-kernel (X19, part 1) |
 | `mach_kernel/ipc/ipc_port_test.c` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46) |
 | `mach_kernel/kern/zalloc_test.c` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46) |
+| `mach_kernel/man/Makefile` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/README.md` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/ddb.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/host_info.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/host_ipc_statistics.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/host_kernel_version.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/host_processor_set_priv.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/host_processor_sets.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/host_processors.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_host_self.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_msg.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_allocate.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_allocate_name.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_deallocate.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_destroy.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_extract_right.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_get_receive_status.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_get_refs.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_get_set_status.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_insert_right.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_mod_refs.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_move_member.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_names.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_rename.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_request_notification.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_set_mscount.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_set_qlimit.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_set_seqno.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_port_type.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_ports.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_ports_lookup.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_ports_register.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_reply_port.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_task_self.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/mach_thread_self.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_copy.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_create.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_data_error.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_data_initialize.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_data_provided.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_data_request.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_data_unavailable.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_data_unlock.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_data_write.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_destroy.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_get_attributes.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_init.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_lock_completed.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_lock_request.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_server.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_set_attributes.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/memory_object_terminate.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/periodic_thread_create.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/periodic_thread_restart.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_assign.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_control.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_exit.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_get_assignment.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_info.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_set_create.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_set_default.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_set_destroy.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_set_info.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_set_max_priority.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_set_policy_add.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_set_policy_disable.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_set_policy_enable.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_set_policy_limit.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_set_policy_remove.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_set_tasks.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_set_threads.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/processor_start.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_assign.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_assign_default.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_create.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_disable_pc_sampling.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_enable_pc_sampling.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_get_assignment.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_get_sampled_pcs.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_get_special_ports.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_info.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_priority.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_ras_control.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_resume.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_set_default_policy.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_set_special_ports.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_suspend.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_terminate.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/task_threads.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_abort.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_assign.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_create.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_disable_pc_sampling.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_enable_pc_sampling.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_get_periodic_timers.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_get_sampled_pcs.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_get_special_port.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_get_state.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_info.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_policy.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_priority.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_resume.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_set_periodic_timers.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_set_policy.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_set_policy_limit.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_set_policy_param.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_set_special_port.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_set_state.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_suspend.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_switch.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_terminate.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/thread_wire.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/timer_arm.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/timer_cancel.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/timer_create.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/timer_sleep.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/timer_terminate.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/vm_allocate.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/vm_copy.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/vm_deallocate.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/vm_inherit.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/vm_machine_attribute.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/vm_map.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/vm_protect.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/vm_read.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/vm_region.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/vm_set_default_memory_manager.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/vm_statistics.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/vm_wire.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
+| `mach_kernel/man/vm_write.man` | 2026-09-22 kernel: import MK84's manual pages, with their status in 7.3 (R35) |
 | `mach_kernel/vm/vm_kern_test.c` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46) |
 | `mach_services/cmds/mach_init/Makefile` | 2026-09-17 Port CMU's mach_init, notices intact |
 | `mach_services/cmds/mach_init/main.c` | 2026-09-17 Port CMU's mach_init, notices intact |
