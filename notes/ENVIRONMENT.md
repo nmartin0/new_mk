@@ -23,7 +23,7 @@ changes.
 Then:
 
 ```sh
-cd test_mk7.3
+cd new_mk
 
 export ODE4LINUX=~/ode4linux          # the ODE toolset source
 export MK_BUILD=~/.cache/mk7.3        # all build output goes here
@@ -120,6 +120,20 @@ python     3.12.3
 Nothing else is required. There is **no cross-compiler**: the host gcc
 targets i386 with `-m32`, so `gcc-multilib` (or the distribution
 equivalent providing 32-bit startup files and headers) must be present.
+
+## Checking a build
+
+After the build above, `tools/ci-boot.sh` boots the system twice under
+QEMU and prints one `PASS` or `FAIL` line per check -- the acceptance
+run, and the regression tests for L43, L47, L48 and L49 -- exiting with
+the number of failures. It is what CI runs (`.github/workflows/ci.yml`):
+
+```sh
+MIRROR=file://$HOME/mach_stuff/netbsd-1.0-i386/binary sh tools/ci-boot.sh
+```
+
+It takes about five minutes under TCG and keeps the console logs in
+`/tmp/ci-boot`.
 
 ## External dependencies, not in this repository
 

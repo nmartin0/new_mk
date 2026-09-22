@@ -1,0 +1,92 @@
+# CI (R30): build the whole system from nothing, boot it under QEMU, and
+# check it. The build follows notes/ENVIRONMENT.md's Quick start step by
+# step; tools/ci-boot.sh does the booting and prints one PASS or FAIL
+# line per check.
+#
+# The two trees that are not in this repository are pinned to the
+# commits the tree was last verified with, so that a change in either
+# cannot move this job. Advance a pin deliberately, in its own commit.
+
+name: CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-and-boot:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      ODE4LINUX_REPO: https://github.com/andreiw/ode4linux.git
+      ODE4LINUX_PIN: 7acc7dfbbd7a36e36e7a0c91930e555c076b2893
+      MACH_STUFF_REPO: https://github.com/nmartin0/mach_stuff.git
+      MACH_STUFF_PIN: 78cab0993cbfd2f55b3f1d818e42c6a0f7875bdf
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Host packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            gcc-multilib make e2fsprogs qemu-system-x86 curl python3
+
+      - name: KVM, where the runner offers it
+        # Without it boot-ide.sh falls back to TCG, which is slower but
+        # sufficient; ci-boot.sh allows for it.
+        run: |
+          if [ -e /dev/kvm ]; then
+            echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' |
+              sudo tee /etc/udev/rules.d/99-kvm4all.rules
+            sudo udevadm control --reload-rules
+            sudo udevadm trigger --name-match=kvm
+          else
+            echo "no /dev/kvm; the boots will run under TCG"
+          fi
+
+      - name: External trees, pinned
+        run: |
+          git clone "$ODE4LINUX_REPO" "$HOME/ode4linux"
+          git -C "$HOME/ode4linux" checkout --quiet "$ODE4LINUX_PIN"
+          # Only the NetBSD 1.0 sets are needed from mach_stuff.
+          git clone --filter=blob:none --no-checkout "$MACH_STUFF_REPO" "$HOME/mach_stuff"
+          cd "$HOME/mach_stuff"
+          git sparse-checkout init --cone
+          git sparse-checkout set netbsd-1.0-i386/binary/base10 netbsd-1.0-i386/binary/etc10
+          git checkout --quiet "$MACH_STUFF_PIN"
+
+      - name: Build (notes/ENVIRONMENT.md, Quick start)
+        run: |
+          export ODE4LINUX="$HOME/ode4linux" MK_BUILD="$HOME/.cache/mk7.3"
+          sh build/bootstrap-ode.sh
+          sh build/mksandbox.sh
+          sh build/ode.sh MAKEFILE_PASS=FIRST
+          for l in libcthreads libsa_mach libmach libmach_maxonstack libmach_sa; do
+            sh build/ode.sh -here mach_services/lib/$l
+          done
+          sh build/ode.sh -here file_systems
+          sh build/ode.sh -here bootstrap
+          sh build/ode.sh -here default_pager
+          sh build/ode.sh -here mach_kernel MACH_KERNEL_CONFIG=PRODUCTION
+          sh build/ode.sh -here mach_services/servers/lites
+          ls -l "$MK_BUILD/obj/at386/mach_kernel/PRODUCTION/mach_kernel.PRODUCTION"
+
+      - name: The build leaves the tree clean
+        run: |
+          git status --porcelain > /tmp/status
+          if [ -s /tmp/status ]; then cat /tmp/status; exit 1; fi
+
+      - name: Boot and check
+        run: |
+          export MK_BUILD="$HOME/.cache/mk7.3"
+          export MIRROR="file://$HOME/mach_stuff/netbsd-1.0-i386/binary"
+          sh tools/ci-boot.sh
+
+      - name: Console logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-boot-logs
+          path: /tmp/ci-boot
