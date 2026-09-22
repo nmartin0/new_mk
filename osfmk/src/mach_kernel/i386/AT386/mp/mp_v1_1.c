@@ -275,8 +275,19 @@ mp_v1_1_take_irq(int pic, int unit, int spl, intr_t intr)
 	int ind;
 	unsigned int vec;
 
-	unsigned int *select =(unsigned int *)(ioapic_start[0]+IOAPIC_RSELECT);
-	unsigned int *window =(unsigned int *)(ioapic_start[0]+IOAPIC_RWINDOW);
+	/*
+	 * AI-ONLY NOTE: volatile, as the local APIC accessors in this file
+	 * already are (LF/LS below). Without it GCC 13 merged the two stores
+	 * to *select -- provably a different address from *window -- keeping
+	 * only the last, so both window writes landed on one register and the
+	 * vector overwrote the destination: every redirection entry read
+	 * dest=0, addressed to no processor, and no interrupt was ever
+	 * delivered (Q6, G209).
+	 */
+	volatile unsigned int *select =
+		(volatile unsigned int *)(ioapic_start[0]+IOAPIC_RSELECT);
+	volatile unsigned int *window =
+		(volatile unsigned int *)(ioapic_start[0]+IOAPIC_RWINDOW);
 
 	if (!mp_v1_1_initialized) {
 #if	MP_DEBUG
@@ -328,8 +339,11 @@ mp_v1_1_reset_irq(
 {
 	int ind;
 
-	unsigned int *select =(unsigned int *)(ioapic_start[0]+IOAPIC_RSELECT);
-	unsigned int *window =(unsigned int *)(ioapic_start[0]+IOAPIC_RWINDOW);
+	/* AI-ONLY NOTE: volatile, as above (Q6, G209). */
+	volatile unsigned int *select =
+		(volatile unsigned int *)(ioapic_start[0]+IOAPIC_RSELECT);
+	volatile unsigned int *window =
+		(volatile unsigned int *)(ioapic_start[0]+IOAPIC_RWINDOW);
 
 	if (!mp_v1_1_initialized) {
 		return (FALSE);
@@ -1178,8 +1192,8 @@ db_lapic(int cpu)
 void
 db_ioapic(unsigned int ind)
 {
-	unsigned int *select;
-	unsigned int *window;
+	volatile unsigned int *select;	/* AI-ONLY NOTE: volatile (Q6, G209) */
+	volatile unsigned int *window;
 	unsigned int id, v;
 	unsigned int max_ent;
 	int i;
@@ -1191,8 +1205,9 @@ db_ioapic(unsigned int ind)
 	start = ioapic_start[ind];
 	p_start = pioapic[ind];
 
-	select = (unsigned int *)(start + IOAPIC_RSELECT);
-	window = (unsigned int *)(start + IOAPIC_RWINDOW);
+	/* AI-ONLY NOTE: volatile, as above (Q6, G209). */
+	select = (volatile unsigned int *)(start + IOAPIC_RSELECT);
+	window = (volatile unsigned int *)(start + IOAPIC_RWINDOW);
 
 	*select = IOA_R_ID;
 	id = (*window)>>IOA_R_ID_SHIFT;
