@@ -74,7 +74,7 @@ whole plan.
 
 | question | what it settles |
 |---|---|
-| **Q15** does `DEBUG+NORMA` still build? | **Moved here from Stage 9.** Nineteen NORMA configurations exist for i386 and none has been built in this revival (G95). The answer decides whether **D20**'s premise holds, whether Stage 13 is a revival or a reimplementation, and whether L23 and K49 carry the constraint that `object->memq` is iterated inside `xmm_user.c` and `vm_copy.c` (G124). Also surfaces the `FAST_IDLE` contradiction between `config.norma` and `config.mp`. |
+| **Q15** does `DEBUG+NORMA` still build? | **Moved here from Stage 9.** Nineteen NORMA configurations exist for i386 and none has been built in this revival (G95). The answer decides whether **D20**'s premise holds, whether Stage 13 is a revival or a reimplementation, and whether L23 and K49 carry the constraint that `object->memq` is iterated inside `xmm_user.c` and `vm_copy.c` (G124). Also surfaces the `FAST_IDLE` contradiction between `config.norma` and `config.mp`. **Half answered (G196):** compiles in full, fails to link on one latent configuration inconsistency and one piece of DIPC code that was never shipped. |
 | **Q6**, **Q13** does `FAST+MP` boot under `-smp 2`? | **Moved here from Stage 8.** Answers whether SMP is a bring-up or a repair before the ~1,700-site lock conversion is scoped against it. |
 | **Q7** is the Hurd bootstrap graft droppable? | Half-answered already: pmk1.1 has no `boot_script.c` and a 917-line `bootstrap.c`, so the graft is MkLinux-era (G71). Confirming it now keeps K11 simple. |
 
@@ -369,7 +369,7 @@ protocol and NetBSD's permissive `sys/coda` as the boundary mechanism
 |---|---|
 | **Q9** does editing a header rebuild dependents? | **Stage 0** — answered by construction once R32 lands. |
 | **Q6**, **Q13** does FAST+MP boot under `-smp 2`? | **Stage 0** — an afternoon, and it scopes Stage 8. |
-| **Q15** does `DEBUG+NORMA` build? | **Stage 0** — it settles D20's premise, which Stages 9, 10e and 13 all rest on. |
+| **Q15** does `DEBUG+NORMA` build? | **Stage 0** — it settles D20's premise, which Stages 9, 10e and 13 all rest on. **Half answered (G196):** compiles in full, fails to link on one latent configuration inconsistency and one piece of DIPC code that was never shipped. |
 | **Q7** drop the Hurd bootstrap graft? | **Stage 0** — half-answered by G71; confirming it keeps K11 simple. |
 | **Q1**, **Q2**, **Q3** static binary loading, pre-`main` calls, `_lwp_ctl` | Stage 11, with U4/U5. |
 | **Q4**, **Q16** rump LWP bridge; how a second server gets its ports on i386 | Stage 12, **before** X1. |
