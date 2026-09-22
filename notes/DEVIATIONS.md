@@ -33,7 +33,7 @@ baseline does not have it, **removed** when only the baseline does.
 | `mach_kernel/i386/locore.S` | 2026-09-13 i386/locore.S: match register widths to instruction suffixes |
 | `mach_kernel/i386/pio.h` | 2026-09-13 i386/pio.h: use inw/outw instead of the 0x66 prefix hack |
 | `mach_kernel/i386/start.S` | 2026-09-22 kernel: parse boot flags only at word starts; assemble MP startup (Q6)<br>2026-09-22 kernel: AI-ONLY NOTEs for this session's changes; movb in start.S<br>2026-09-22 i386/start.S: take the startup lock with movl, not movb (Q6) |
-| `mach_kernel/intel/pmap.c` | 2026-09-13 Keep the two variables start.S writes out of BSS |
+| `mach_kernel/intel/pmap.c` | 2026-09-13 Keep the two variables start.S writes out of BSS<br>2026-09-22 intel/pmap.c: skip the hole when placing kernel page tables (Q6) |
 | `mach_kernel/kern/bootstrap.c` | 2026-09-14 Revive bootstrap_create_old() behind a -o boot flag<br>2026-09-14 kern/bootstrap.c: give bootstrap_create_old() its matching loader<br>2026-09-14 kern/bootstrap.c: give the i386 bootstrap task its argc and argv<br>2026-09-14 kern/bootstrap.c: map read-only PT_LOAD segments<br>2026-09-15 Skip the ELF header segment silently in all three loaders |
 | `mach_kernel/kern/ipc_kobject.c` | 2026-09-14 kern/ipc_kobject.c: read the routine array through a pointer |
 | `mach_kernel/kern/startup.c` | 2026-09-14 Revive bootstrap_create_old() behind a -o boot flag |

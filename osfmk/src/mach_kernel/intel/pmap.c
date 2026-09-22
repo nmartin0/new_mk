@@ -1014,6 +1014,10 @@ extern	vm_offset_t	avail_start, avail_end;
  *	&etext		end of kernel text
  */
 
+#ifdef	AT386
+extern	vm_offset_t	hole_start, hole_end;	/* AI-ONLY NOTE: for the skip below (Q6) */
+#endif	/* AT386 */
+
 void
 pmap_bootstrap(
 	vm_offset_t	load_start)
@@ -1160,6 +1164,22 @@ pmap_bootstrap(
 		pte = (pt_entry_t *)virtual_avail;
 		ptend = pte + NPTES;
 		virtual_avail = (vm_offset_t)ptend;
+		/*
+		 * AI-ONLY NOTE: skip the hole, as XNU does here (xnu-123.5,
+		 * osfmk/i386/pmap.c) and as pmap_next_page() already does.
+		 * These tables are placed upward from first_addr with no bound:
+		 * on AT386 that is 0x1000, leaving 158 pages below the hole for
+		 * the 255 a 1 GB kernel needs, so they ran through the VGA and
+		 * BIOS area and, with NCPUS > 1 (first_addr + 0x2000), into the
+		 * kernel image, which mp_desc.c then zeroed (Q6, G202-G203).
+		 * OSF's own Corollary port sized its gap correctly: memory at
+		 * 64 MB, kernel at 65 MB, exactly 1 MB of tables between.
+		 * Credited, not licensed (D30).
+		 */
+#ifdef	AT386
+		if (virtual_avail == hole_start)
+			virtual_avail = hole_end;
+#endif	/* AT386 */
 		*pde = PA_TO_PTE((vm_offset_t) pte)
 			| INTEL_PTE_VALID
 			| INTEL_PTE_WRITE
@@ -1208,6 +1228,19 @@ pmap_bootstrap(
 		ptend = pte + NPTES;
 		virtual_avail = (vm_offset_t)ptend;
 		avail_start += INTEL_PGBYTES;
+#ifdef	AT386
+		/*
+		 * AI-ONLY NOTE: and the same skip here, where most of the
+		 * tables are taken -- the loop above stops at the end of
+		 * physical memory. avail_start walks with virtual_avail, so it
+		 * moves too. XNU instead takes these pages from
+		 * pmap_next_page(), which skips the hole itself (Q6).
+		 */
+		if (virtual_avail == hole_start) {
+			virtual_avail = hole_end;
+			avail_start = virtual_avail - VM_MIN_KERNEL_ADDRESS;
+		}
+#endif	/* AT386 */
 		*pde = PA_TO_PTE((vm_offset_t) pte)
 			| INTEL_PTE_VALID
 			| INTEL_PTE_WRITE
