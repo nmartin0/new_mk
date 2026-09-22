@@ -137,6 +137,18 @@ over-infer. This is as important as saying what it does.
 **3.9 Source changes carry their reasoning in the source**, as a
 comment at the site, when the reason is not obvious from the diff.
 
+
+**3.10 Before handing off a patch, check its chain of precedent -- a
+hard rule.** Every change, in code and in form, is checked against
+three sources before it is packaged, and follows the canonical form
+they establish: (1) the file's own lineage -- what later OSFMK
+snapshots, MkLinux, Rhapsody and XNU did with the same lines; (2) this
+tree's own conventions -- these rules, `WORKFLOW.md` (an `AI-ONLY NOTE`
+at every vendor change, proportionate), `AGENTS.md`, and how the tree
+already solved the same kind of problem, as `pio.h` did for assembler
+grammar; (3) comparable systems, quoted, as 3.7 asks. Where none
+exists, the commit says so. The handoff reports what the check found.
+
 ---
 
 ## 4. Proving a change is right
