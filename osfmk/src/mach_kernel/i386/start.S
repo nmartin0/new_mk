@@ -353,10 +353,12 @@ multiboot_entry:
 	jne	0b
 /*
  * AI-ONLY NOTE: was "movb $1,%eax", which GNU as 2.42 rejects. Older as
- * took the size from the suffix and used %al, warning "due to `b'
- * suffix"; this is that instruction, byte-identical (b0 01) (Q6).
+ * used %al, but byte identity is wrong here: %al leaves the upper bits as
+ * the loader left them, and multiboot leaves its magic in %eax, so the
+ * lock took 0x2BAD0001 and QEMU crashed booting FAST+MP; with movl it
+ * does not (G199). A 32-bit lock, exchanged and tested as 32 bits, holds 1.
  */
-1:	movb	$1,%al
+1:	movl	$1,%eax
 	xchgl	%eax,PA(EXT(start_lock)) /* locked */
 	testl	%eax,%eax
 	jnz	0b
