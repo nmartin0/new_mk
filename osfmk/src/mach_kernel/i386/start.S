@@ -351,7 +351,7 @@ multiboot_entry:
 	jmp	1f
 0:	cmpl	$0,PA(EXT(start_lock))
 	jne	0b
-1:	movb	$1,%eax
+1:	movl	$1,%eax	/* was movb: xchgl and testl use all 32 bits (Q6) */
 	xchgl	%eax,PA(EXT(start_lock)) /* locked */
 	testl	%eax,%eax
 	jnz	0b

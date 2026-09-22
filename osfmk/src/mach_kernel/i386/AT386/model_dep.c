@@ -555,10 +555,26 @@ parse_arguments(void)
 	    return;
 
 	while (p < endp) {
-	    if (*p++ != '-') {
+	    /*
+	     * A group of flags starts only where a word starts with '-'.
+	     * QEMU's multiboot command line begins with the kernel's file
+	     * name, and a hyphen inside it -- as in a build directory named
+	     * nmk-full -- made the parser read ".../mach_kernel.FAST" as
+	     * flags: the "h" of "mach" set -h (Q6).
+	     */
+	    if (*p != '-' || (p > (char *) kern_args_start &&
+			      p[-1] != ' ' && p[-1] != '\t' && p[-1] != '\0')) {
+		p++;
 		continue;
 	    }
-	    while (ch = *p++) {
+	    p++;
+	    /*
+	     * And it ends at white space as well as at the NUL that OSF's boot
+	     * loader put between arguments: a multiboot command line separates
+	     * them with spaces, and reading on took the "h" of "BOOTDEV=hd"
+	     * as -h (Q6).
+	     */
+	    while ((ch = *p++) != '\0' && ch != ' ' && ch != '\t') {
 		switch (ch) {
 		case 'h':
 		    halt_in_debugger = 1;
