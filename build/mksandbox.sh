@@ -152,7 +152,12 @@ replace setenv CARGS "-D__NO_UNDERSCORES__ -m32 -std=gnu89 -fcommon -fno-stack-p
 #
 replace setenv ANSI_CC "gcc -m32 -fno-builtin -Wno-error"
 replace setenv TRADITIONAL_CC "gcc -m32 -fno-builtin -Wno-error"
-replace setenv HOST_CC "gcc -m32 -fno-builtin -Wno-error"
+# -std=gnu89 here too, for the same reason CARGS has it above: GCC 14
+# makes implicit int and implicit function declarations hard errors in
+# C99 and later, and LITES's emulator_base.c is K&R -- "main() {
+# printf(...); }". The host compiler had been left out, so the build
+# failed on GCC 14 and not on 13 (G205).
+replace setenv HOST_CC "gcc -m32 -fno-builtin -Wno-error -std=gnu89"
 #
 # ld on an x86-64 host defaults to elf_x86_64 output and rejects the
 # 32-bit objects: "i386 architecture of input file is incompatible with
