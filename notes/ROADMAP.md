@@ -75,7 +75,7 @@ whole plan.
 | question | what it settles |
 |---|---|
 | **Q15** does `DEBUG+NORMA` still build? | **Moved here from Stage 9.** Nineteen NORMA configurations exist for i386 and none has been built in this revival (G95). The answer decides whether **D20**'s premise holds, whether Stage 13 is a revival or a reimplementation, and whether L23 and K49 carry the constraint that `object->memq` is iterated inside `xmm_user.c` and `vm_copy.c` (G124). Also surfaces the `FAST_IDLE` contradiction between `config.norma` and `config.mp`. **Half answered (G196):** compiles in full, fails to link on one latent configuration inconsistency and one piece of DIPC code that was never shipped. |
-| **Q6**, **Q13** does `FAST+MP` boot under `-smp 2`? | **Moved here from Stage 8.** Answers whether SMP is a bring-up or a repair before the ~1,700-site lock conversion is scoped against it. **Partly answered (G197):** builds after a one-line fix; hangs early in `ddb`, on one CPU as on two, with its output lost. |
+| **Q6**, **Q13** does `FAST+MP` boot under `-smp 2`? | **Moved here from Stage 8.** Answers whether SMP is a bring-up or a repair before the ~1,700-site lock conversion is scoped against it. **Partly answered (G197):** builds after a one-line fix; hangs early in `ddb`, on one CPU as on two, with its output lost. **Q13 answered (G206):** QEMU's MP table carries only the boot processor, so SMP there waits on ACPI. |
 | **Q7** is the Hurd bootstrap graft droppable? | Half-answered already: pmk1.1 has no `boot_script.c` and a 917-line `bootstrap.c`, so the graft is MkLinux-era (G71). Confirming it now keeps K11 simple. |
 
 **Also here, because they are repository work and block nothing:**
