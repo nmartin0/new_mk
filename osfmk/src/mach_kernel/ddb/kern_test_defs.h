@@ -37,7 +37,12 @@
 #define KKT_TEST	3
 #define MSG_TEST	4
 #define DIPC_TEST	5
-#define UNIT_TEST	6	/* short tests that finish and report (K46) */
+/*
+ * AI-ONLY NOTE: UNIT_TEST, ddb/unit_test.c, runs short tests that finish
+ * and report PASSED or FAILED (K46); MAX_TEST and MAX_TEST_BIT grow to
+ * include it.
+ */
+#define UNIT_TEST	6
 #define MAX_TEST	6
 
 /*

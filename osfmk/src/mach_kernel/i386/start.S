@@ -351,7 +351,12 @@ multiboot_entry:
 	jmp	1f
 0:	cmpl	$0,PA(EXT(start_lock))
 	jne	0b
-1:	movl	$1,%eax	/* was movb: xchgl and testl use all 32 bits (Q6) */
+/*
+ * AI-ONLY NOTE: was "movb $1,%eax", which GNU as 2.42 rejects. Older as
+ * took the size from the suffix and used %al, warning "due to `b'
+ * suffix"; this is that instruction, byte-identical (b0 01) (Q6).
+ */
+1:	movb	$1,%al
 	xchgl	%eax,PA(EXT(start_lock)) /* locked */
 	testl	%eax,%eax
 	jnz	0b

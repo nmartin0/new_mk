@@ -361,6 +361,8 @@ ddb/db_write_cmd.c		optional mach_kdb
 
 ddb/tr.c			optional mach_tr
 ddb/kernel_test.c		optional kernel_test
+# AI-ONLY NOTE: the unit tests (K46, X19) sit beside the code they test,
+# as vm/vm_test.c does, and build only with kernel_test.
 ddb/unit_test.c			optional kernel_test
 kgdb/kgdb_com.c                 optional mach_kgdb
 kgdb/kgdb_entry.c               optional mach_kgdb

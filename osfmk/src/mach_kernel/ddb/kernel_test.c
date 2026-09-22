@@ -121,14 +121,14 @@ void (*(kern_test_intr_func[MAX_TEST + 1]))(void) = {
 		0,
 #endif	/* DIPC */
 		0,
-		0		/* UNIT_TEST */
+		0
 	};
 
 /*
  * Each class of test must supply an initialization routine.
  */
 extern void vm_test_init(boolean_t);
-extern void unit_test_init(boolean_t);	/* ddb/unit_test.c, K46 */
+extern void unit_test_init(boolean_t);
 #if	NORMA_SCSI
 extern void scsit_test_init(boolean_t);
 #endif	/* NORMA_SCSI */
@@ -181,6 +181,10 @@ extern	void 		start_kernel_threads(void);
  * initialization routine will be called with a FALSE argument.  In either
  * case, the corresponding bit will be set in kern_test_init_done so that
  * the initialization routine is only called once.
+ */
+/*
+ * AI-ONLY NOTE: UNIT_TEST_BIT added, so the unit tests run at boot in the
+ * PRODUCTION+TEST configuration (K46); unit_test_init is its slot above.
  */
 unsigned int kern_test_enable = PAGING_LOAD_BIT | VM_TEST_BIT | UNIT_TEST_BIT
 #if	NORMA_SCSI

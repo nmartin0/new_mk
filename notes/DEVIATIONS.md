@@ -20,19 +20,19 @@ baseline does not have it, **removed** when only the baseline does.
 | file | commits that changed it |
 |---|---|
 | `bootstrap/elf.c` | 2026-09-15 bootstrap/elf.c: accept read-only PT_LOAD segments<br>2026-09-15 Skip the ELF header segment silently in all three loaders |
-| `mach_kernel/conf/files` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46)<br>2026-09-22 kernel: the IPC baseline, measured in-kernel (X19, part 1) |
-| `mach_kernel/ddb/kern_test_defs.h` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46) |
-| `mach_kernel/ddb/kernel_test.c` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46) |
-| `mach_kernel/i386/AT386/bbclock.c` | 2026-09-21 kernel: read the i386 RTC with full years (L48)<br>2026-09-21 kernel: write the RTC year as Apple does, j % 100 |
+| `mach_kernel/conf/files` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46)<br>2026-09-22 kernel: the IPC baseline, measured in-kernel (X19, part 1)<br>2026-09-22 kernel: AI-ONLY NOTEs for this session's changes; movb in start.S |
+| `mach_kernel/ddb/kern_test_defs.h` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46)<br>2026-09-22 kernel: AI-ONLY NOTEs for this session's changes; movb in start.S |
+| `mach_kernel/ddb/kernel_test.c` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46)<br>2026-09-22 kernel: AI-ONLY NOTEs for this session's changes; movb in start.S |
+| `mach_kernel/i386/AT386/bbclock.c` | 2026-09-21 kernel: read the i386 RTC with full years (L48)<br>2026-09-21 kernel: write the RTC year as Apple does, j % 100<br>2026-09-22 kernel: AI-ONLY NOTEs for this session's changes; movb in start.S |
 | `mach_kernel/i386/AT386/fd.c` | 2026-09-14 i386/AT386/fd.c: drain the reset interrupt in rstout() |
 | `mach_kernel/i386/AT386/hd.c` | 2026-09-15 i386/AT386/hd.c: size the whole-disk partition from the label<br>2026-09-16 i386/AT386/hd.c: fall back to IDENTIFY's default geometry, and report it<br>2026-09-16 i386/AT386/hd.c: disable device interrupts for polled ATA commands |
 | `mach_kernel/i386/AT386/lpr.c` | 2026-09-14 i386/AT386/lpr.c: declare curr_ipl as int, matching the assembly |
-| `mach_kernel/i386/AT386/model_dep.c` | 2026-09-13 i386/AT386/model_dep.c: clear BSS before consuming boot data<br>2026-09-13 Keep the two variables start.S writes out of BSS<br>2026-09-13 i386/AT386/model_dep.c: bound the module reads by mods_count<br>2026-09-14 Revive bootstrap_create_old() behind a -o boot flag<br>2026-09-14 i386/AT386/model_dep.c: populate the environment from the command line<br>2026-09-22 kernel: parse boot flags only at word starts; assemble MP startup (Q6) |
+| `mach_kernel/i386/AT386/model_dep.c` | 2026-09-13 i386/AT386/model_dep.c: clear BSS before consuming boot data<br>2026-09-13 Keep the two variables start.S writes out of BSS<br>2026-09-13 i386/AT386/model_dep.c: bound the module reads by mods_count<br>2026-09-14 Revive bootstrap_create_old() behind a -o boot flag<br>2026-09-14 i386/AT386/model_dep.c: populate the environment from the command line<br>2026-09-22 kernel: parse boot flags only at word starts; assemble MP startup (Q6)<br>2026-09-22 kernel: AI-ONLY NOTEs for this session's changes; movb in start.S |
 | `mach_kernel/i386/hardclock.c` | 2026-09-14 i386/hardclock.c: stop GCC rewriting the interrupt frame |
 | `mach_kernel/i386/i386_rpc.c` | 2026-09-13 i386/i386_rpc.c: declare written asm operands as outputs |
 | `mach_kernel/i386/locore.S` | 2026-09-13 i386/locore.S: match register widths to instruction suffixes |
 | `mach_kernel/i386/pio.h` | 2026-09-13 i386/pio.h: use inw/outw instead of the 0x66 prefix hack |
-| `mach_kernel/i386/start.S` | 2026-09-22 kernel: parse boot flags only at word starts; assemble MP startup (Q6) |
+| `mach_kernel/i386/start.S` | 2026-09-22 kernel: parse boot flags only at word starts; assemble MP startup (Q6)<br>2026-09-22 kernel: AI-ONLY NOTEs for this session's changes; movb in start.S |
 | `mach_kernel/intel/pmap.c` | 2026-09-13 Keep the two variables start.S writes out of BSS |
 | `mach_kernel/kern/bootstrap.c` | 2026-09-14 Revive bootstrap_create_old() behind a -o boot flag<br>2026-09-14 kern/bootstrap.c: give bootstrap_create_old() its matching loader<br>2026-09-14 kern/bootstrap.c: give the i386 bootstrap task its argc and argv<br>2026-09-14 kern/bootstrap.c: map read-only PT_LOAD segments<br>2026-09-15 Skip the ELF header segment silently in all three loaders |
 | `mach_kernel/kern/ipc_kobject.c` | 2026-09-14 kern/ipc_kobject.c: read the routine array through a pointer |
