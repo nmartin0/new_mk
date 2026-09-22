@@ -37,7 +37,8 @@
 #define KKT_TEST	3
 #define MSG_TEST	4
 #define DIPC_TEST	5
-#define MAX_TEST	5
+#define UNIT_TEST	6	/* short tests that finish and report (K46) */
+#define MAX_TEST	6
 
 /*
  * These constants are used to test a particular bit, and so should
@@ -49,7 +50,8 @@
 #define KKT_TEST_BIT	8
 #define MSG_TEST_BIT	16
 #define DIPC_TEST_BIT	32
-#define MAX_TEST_BIT	32
+#define UNIT_TEST_BIT	64
+#define MAX_TEST_BIT	64
 
 extern unsigned int kern_test_intr_control[];
 

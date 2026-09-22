@@ -135,6 +135,22 @@ MIRROR=file://$HOME/mach_stuff/netbsd-1.0-i386/binary sh tools/ci-boot.sh
 It takes about five minutes under TCG and keeps the console logs in
 `/tmp/ci-boot`.
 
+## In-kernel unit tests
+
+The `PRODUCTION+TEST` configuration adds OSF's `KERNEL_TEST` framework
+and the unit tests (K46), which run at boot and print one line each and
+a total -- `unit_test: 4 passed, 0 failed`:
+
+```sh
+sh build/ode.sh -here mach_kernel MACH_KERNEL_CONFIG=PRODUCTION+TEST
+KERNEL=$MK_BUILD/obj/at386/mach_kernel/PRODUCTION+TEST/mach_kernel.PRODUCTION+TEST \
+CONSOLE=socket-wait STARTUP_ARGS='-i /init' sh tools/boot-ide.sh
+python3 tools/console.py --attach &
+```
+
+`socket-wait` holds the guest until `console.py` attaches; with plain
+`socket` the kernel's own messages, the results among them, are lost.
+
 ## External dependencies, not in this repository
 
 | path | what | modified? |

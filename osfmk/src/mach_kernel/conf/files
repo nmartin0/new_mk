@@ -361,6 +361,7 @@ ddb/db_write_cmd.c		optional mach_kdb
 
 ddb/tr.c			optional mach_tr
 ddb/kernel_test.c		optional kernel_test
+ddb/unit_test.c			optional kernel_test
 kgdb/kgdb_com.c                 optional mach_kgdb
 kgdb/kgdb_entry.c               optional mach_kgdb
 kgdb/kgdb_output.c              optional mach_kgdb
@@ -387,6 +388,7 @@ ipc/ipc_mqueue.c		standard
 ipc/ipc_notify.c		standard
 ipc/ipc_object.c		standard
 ipc/ipc_port.c			standard
+ipc/ipc_port_test.c		optional kernel_test
 ipc/ipc_pset.c			standard
 ipc/ipc_right.c			standard
 ipc/ipc_space.c			standard
@@ -452,6 +454,7 @@ kern/timer.c			standard
 kern/posixtime.c		standard
 kern/xpr.c			optional xpr_debug
 kern/zalloc.c			standard
+kern/zalloc_test.c		optional kernel_test
 ./mach/clock_reply_user.c	standard
 ./mach/clock_server.c		standard
 ./mach/mach_host_server.c	standard
@@ -469,6 +472,7 @@ vm/vm_external.c                optional mach_pagemap
 vm/vm_fault.c			standard
 vm/vm_init.c			standard
 vm/vm_kern.c			standard
+vm/vm_kern_test.c		optional kernel_test
 vm/vm_map.c			standard
 vm/vm_object.c			standard
 vm/vm_pageout.c			standard

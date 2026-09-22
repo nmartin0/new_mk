@@ -120,13 +120,15 @@ void (*(kern_test_intr_func[MAX_TEST + 1]))(void) = {
 #else	/* DIPC */
 		0,
 #endif	/* DIPC */
-		0
+		0,
+		0		/* UNIT_TEST */
 	};
 
 /*
  * Each class of test must supply an initialization routine.
  */
 extern void vm_test_init(boolean_t);
+extern void unit_test_init(boolean_t);	/* ddb/unit_test.c, K46 */
 #if	NORMA_SCSI
 extern void scsit_test_init(boolean_t);
 #endif	/* NORMA_SCSI */
@@ -153,6 +155,7 @@ void (*(kern_test_init_func[MAX_TEST + 1]))(boolean_t) = {
 		0,
 		0,
 #endif	/* DIPC */
+		unit_test_init
 	};
 
 /*
@@ -179,7 +182,7 @@ extern	void 		start_kernel_threads(void);
  * case, the corresponding bit will be set in kern_test_init_done so that
  * the initialization routine is only called once.
  */
-unsigned int kern_test_enable = PAGING_LOAD_BIT | VM_TEST_BIT
+unsigned int kern_test_enable = PAGING_LOAD_BIT | VM_TEST_BIT | UNIT_TEST_BIT
 #if	NORMA_SCSI
 	| SCSIT_TEST_BIT
 #endif	/* NORMA_SCSI */

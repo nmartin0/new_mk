@@ -46,7 +46,9 @@ set -e
 : "${MK_BUILD:?set MK_BUILD first}"
 
 HERE=$(cd "$(dirname "$0")" && pwd)
-K="$MK_BUILD/obj/at386/mach_kernel/PRODUCTION/mach_kernel.PRODUCTION"
+# KERNEL= boots another configuration, e.g. the PRODUCTION+TEST kernel
+# that runs the in-kernel tests (K46); PRODUCTION by default.
+K="${KERNEL:-$MK_BUILD/obj/at386/mach_kernel/PRODUCTION/mach_kernel.PRODUCTION}"
 BOOTSTRAP="$MK_BUILD/obj/at386/bootstrap/bootstrap"
 PAGER="$MK_BUILD/obj/at386/default_pager/default_pager"
 # LITES is built by the tree's own ODE rules, like bootstrap and
@@ -335,9 +337,17 @@ rm -f /tmp/console.log
 # The default stays `file`, because every existing recipe and every
 # console log quoted in the documentation came from it.
 case "${CONSOLE:-file}" in
-socket)
+socket|socket-wait)
+	# socket-wait holds the guest until console.py connects, so nothing
+	# it prints is lost; with plain socket, output before the attach is
+	# discarded -- which includes the kernel's own messages, such as the
+	# unit test results of the PRODUCTION+TEST kernel (K46).
 	rm -f /tmp/serial.sock
-	SERIAL="-serial unix:/tmp/serial.sock,server,nowait"
+	if [ "$CONSOLE" = socket-wait ]; then
+		SERIAL="-serial unix:/tmp/serial.sock,server=on,wait=on"
+	else
+		SERIAL="-serial unix:/tmp/serial.sock,server,nowait"
+	fi
 	echo "serial console on /tmp/serial.sock; attach with"
 	echo "  python3 tools/console.py --attach &"
 	;;
@@ -345,7 +355,7 @@ file)
 	SERIAL="-serial file:/tmp/console.log"
 	;;
 *)
-	echo "CONSOLE must be file or socket" >&2; exit 1
+	echo "CONSOLE must be file, socket or socket-wait" >&2; exit 1
 	;;
 esac
 
@@ -375,7 +385,7 @@ qemu-system-i386 $ACCEL -kernel "$K" \
 # In socket mode nothing writes /tmp/console.log until console.py
 # attaches, so watching it here would report a stuck boot that is
 # running perfectly. Hand over instead.
-if [ "${CONSOLE:-file}" = socket ]; then
+if [ "${CONSOLE:-file}" != file ]; then
 	echo
 	echo "attach to it with:"
 	echo "  python3 tools/console.py --attach &"

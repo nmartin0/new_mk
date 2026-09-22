@@ -47,7 +47,9 @@ fail() { echo "ci-boot: FAIL $1: $2"; FAILS=$((FAILS + 1)); }
 
 stop_guest() {
 	pkill -x qemu-system-i38 2>/dev/null
-	for p in $(pgrep -f 'tools/console.py --attach'); do kill $p 2>/dev/null; done
+	# Anchored: an unanchored -f pattern also matches any shell whose own
+	# command line mentions console.py, and kills it.
+	for p in $(pgrep -f '^python3 tools/console.py --attach'); do kill $p 2>/dev/null; done
 	sleep 2
 }
 

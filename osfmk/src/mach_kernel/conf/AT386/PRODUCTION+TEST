@@ -1,0 +1,6 @@
+include		"AT386/config.common"
+include		"AT386/config.devices"
+-include	"config.local"
+-include	"AT386/config.local"
+options		KERNEL_TEST
+config		"mach_kernel.PRODUCTION+TEST"
