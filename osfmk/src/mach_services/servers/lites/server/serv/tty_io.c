@@ -353,12 +353,14 @@ mach_error_t tty_open(dev_t dev, int flag, int devtype, struct proc *p)
 mach_error_t tty_close(dev_t dev, int flag, int mode, struct proc *p)
 {
 	struct tty *tp;
+	int rqueued;
 
 	/* get tty structure and port from dev */
 	tp = tty_hash_lookup(dev);
 	if (!tp)
 		return ENODEV;
 
+	rqueued = tp->t_state & TS_RQUEUED;
 	(*linesw[tp->t_line].l_close)(tp, flag);
 
 	/*
@@ -394,6 +396,17 @@ mach_error_t tty_close(dev_t dev, int flag, int mode, struct proc *p)
 	 * Leave tty structure, but mark it closed.
 	 */
 	ttyclose(tp);
+	/*
+	 * The console is not really closed: it keeps its reply port and
+	 * device, and the read tty_open() posted stays pending in the
+	 * kernel. ttyclose() has just zeroed t_state, and with it
+	 * TS_RQUEUED, the flag recording that read -- so the next open
+	 * would post a second one. With two reads outstanding, a character
+	 * that completes the older one at interrupt time can reach the line
+	 * discipline after characters typed later (L43). Keep the flag.
+	 */
+	if (tp == cons_tp)
+		tp->t_state |= rqueued;
 	return KERN_SUCCESS;
 }
 
