@@ -39,7 +39,7 @@
 #
 
 target_cpu	?= ${MACHINE}
-# VPATH carries the INCFLAGS directories too, in the same order, so that
+# AI-ONLY NOTE: VPATH carries the INCFLAGS directories too, in the same order, so that
 # make finds each header by the name md recorded for it (Q9).
 VPATH		= ${target_cpu}:extra:programs:../server:${LITES_TOP}include:${EXPORTBASE}/lites/server:${EXPORTBASE}/lites
 
@@ -56,7 +56,7 @@ NO_STRIP	=
 
 LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
 INCFLAGS	= -I${LITES_TOP}emulator -I${LITES_TOP}server -I${LITES_TOP}include
-# md records a header as a dependency only if it was found through an
+# AI-ONLY NOTE: md records a header as a dependency only if it was found through an
 # include directory listed before -I- in its command line; headers found
 # through the rest -- every -I the compiler is given -- it treats as
 # standard and writes, at most, as comments. ODE lists each component's
@@ -224,7 +224,7 @@ BASE=`./emulator_base`
 #
 EMULATOR_LDFLAGS = -m elf_i386 -z muldefs
 EMULATOR_LIBS	= -L${EXPORTBASE}/lib -llites -lcthreads -lmach_sa -lsa_mach -lmach_sa
-# The libraries as files, so that relinking follows them: -l names them
+# AI-ONLY NOTE: the libraries as files, so that relinking follows them: -l names them
 # only to the linker, and without this a rebuilt liblites left the
 # emulator and server linked against the old one (L47).
 EMULATOR_LIBDEPS = ${EXPORTBASE}/lib/liblites.a ${EXPORTBASE}/lib/libcthreads.a \
@@ -330,7 +330,7 @@ emulator_base: xxx_emulator_base.c
 	${HOST_CC} ${_host_FLAGS_} -o emulator_base.out xxx_emulator_base.c)
 	${MV} emulator_base.out emulator_base
 
-# The dependencies md collected (MDINCFLAGS above); every ODE component
+# AI-ONLY NOTE: the dependencies md collected (MDINCFLAGS above); every ODE component
 # includes them this way, and LITES never did (Q9).
 .if exists(depend.mk)
 .include "depend.mk"

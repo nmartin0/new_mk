@@ -29,7 +29,7 @@
 
 
 # ${EXPORTBASE}/lites has the machine link.
-# VPATH carries the INCFLAGS directories too, in the same order, so that
+# AI-ONLY NOTE: VPATH carries the INCFLAGS directories too, in the same order, so that
 # make finds each header by the name md recorded for it (Q9).
 VPATH		= ..:../../include:${EXPORTBASE}/lites/server:${EXPORTBASE}/lites
 
@@ -122,7 +122,7 @@ NPROFILING_CFLAGS=${DEFINES} -DGPROF
 # sourcedirs, INCDIRS is not expanded.
 
 INCFLAGS	= -I.. -I../../include
-# md records a header as a dependency only if it was found through an
+# AI-ONLY NOTE: md records a header as a dependency only if it was found through an
 # include directory listed before -I- in its command line; headers found
 # through the rest -- every -I the compiler is given -- it treats as
 # standard and writes, at most, as comments. ODE lists each component's
@@ -221,7 +221,7 @@ NEWVERS_DEPS = \
 
 
 
-# The libraries SERVER_LIBS links, as files, so that relinking follows
+# AI-ONLY NOTE: the libraries SERVER_LIBS links, as files, so that relinking follows
 # them: -l names them only to the linker, and without this a rebuilt
 # liblites left the server linked against the old one (L47). Defined
 # here, above the rule, because make expands a rule's prerequisites
@@ -415,7 +415,7 @@ printenv:
 	@echo VPATH=${VPATH}
 	@echo INCDIRS=${INCDIRS}
 
-# The dependencies md collected (MDINCFLAGS above); every ODE component
+# AI-ONLY NOTE: the dependencies md collected (MDINCFLAGS above); every ODE component
 # includes them this way, and LITES never did (Q9).
 .if exists(depend.mk) && !defined(TOSTAGE)
 .include "depend.mk"

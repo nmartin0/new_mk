@@ -27,7 +27,7 @@
 LIBNAME=lites
 
 target_cpu	?= ${MACHINE}
-# VPATH carries the INCFLAGS directories too, in the same order, so that
+# AI-ONLY NOTE: VPATH carries the INCFLAGS directories too, in the same order, so that
 # make finds each header by the name md recorded for it (Q9).
 VPATH		= ${target_cpu}:${LITES_TOP}server:${LITES_TOP}include
 
@@ -42,7 +42,7 @@ NO_STRIP	=
 
 LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
 INCFLAGS	= -I${LITES_TOP}server -I${LITES_TOP}include
-# md records a header as a dependency only if it was found through an
+# AI-ONLY NOTE: md records a header as a dependency only if it was found through an
 # include directory listed before -I- in its command line; headers found
 # through the rest -- every -I the compiler is given -- it treats as
 # standard and writes, at most, as comments. ODE lists each component's
@@ -99,7 +99,7 @@ ${SFILES:.o=.S}: $${.TARGET:.S=.s}
 ${SFILES}: $${.TARGET:.o=.S}
 	${_CC_} -DASSEMBLER ${_CCFLAGS_} -c ${.TARGET:.o=.S}
 
-# The dependencies md collected (MDINCFLAGS above); every ODE component
+# AI-ONLY NOTE: the dependencies md collected (MDINCFLAGS above); every ODE component
 # includes them this way, and LITES never did (Q9).
 .if exists(depend.mk)
 .include "depend.mk"

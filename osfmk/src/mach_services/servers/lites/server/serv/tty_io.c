@@ -397,13 +397,12 @@ mach_error_t tty_close(dev_t dev, int flag, int mode, struct proc *p)
 	 */
 	ttyclose(tp);
 	/*
-	 * The console is not really closed: it keeps its reply port and
-	 * device, and the read tty_open() posted stays pending in the
-	 * kernel. ttyclose() has just zeroed t_state, and with it
-	 * TS_RQUEUED, the flag recording that read -- so the next open
-	 * would post a second one. With two reads outstanding, a character
-	 * that completes the older one at interrupt time can reach the line
-	 * discipline after characters typed later (L43). Keep the flag.
+	 * AI-ONLY NOTE: keep TS_RQUEUED for the console. It keeps its reply
+	 * port and device, so the read tty_open() posted is still pending in the
+	 * kernel; ttyclose() has just zeroed t_state, and the next open would
+	 * post a second read. Two outstanding reads reorder input: a character
+	 * completing the older one at interrupt time can arrive after later
+	 * ones (L43).
 	 */
 	if (tp == cons_tp)
 		tp->t_state |= rqueued;

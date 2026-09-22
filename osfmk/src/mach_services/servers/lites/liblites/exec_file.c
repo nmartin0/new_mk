@@ -271,10 +271,10 @@ void guess_binary_type_from_header(
 	if ((tmp & 0xffff) == ZMAGIC) {
 		*bt = BT_NETBSD;
 		/*
-		 * The machine id, as NetBSD's N_GETMID extracts it. Utah wrote
-		 * && here, which gives only 0 or 1, so neither case matched and
-		 * every NetBSD binary's cpu type stayed unknown -- accepted
-		 * whatever machine it was built for (L47).
+		 * AI-ONLY NOTE: "&", as NetBSD's N_GETMID extracts the machine id.
+		 * Utah wrote "&&", which gives 0 or 1, so every NetBSD binary's cpu
+		 * type stayed unknown and it was accepted whatever machine it was
+		 * built for (L47).
 		 */
 		switch ((tmp >> 16) & 0x3ff) {
 		      case 134:		/* 0b018600 */
