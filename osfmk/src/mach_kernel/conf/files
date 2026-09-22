@@ -389,6 +389,7 @@ ipc/ipc_notify.c		standard
 ipc/ipc_object.c		standard
 ipc/ipc_port.c			standard
 ipc/ipc_port_test.c		optional kernel_test
+ipc/ipc_bench.c			optional kernel_test
 ipc/ipc_pset.c			standard
 ipc/ipc_right.c			standard
 ipc/ipc_space.c			standard

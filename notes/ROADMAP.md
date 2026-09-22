@@ -61,7 +61,7 @@ premise the later stages rest on.
 | **R36** ODE's library rules recompile objects on every build | Found under R32: build time, not correctness. |
 | **K46** in-kernel unit tests -- **first four done** (G192) | Built on **OSF's own `KERNEL_TEST` framework**, not XNU's `xnupost`: a `UNIT_TEST` slot that reports PASS/FAIL, tests beside their subsystems, the `PRODUCTION+TEST` configuration. Needs no userland. More tests to follow. |
 | **R5** `DEVIATIONS.md` -- **done** (G193) | Generated from git by `tools/deviations.py`, against mkunity for OSFMK and the vendor import for LITES; every deviating file listed with the commits that explain it; `--check` catches a stale record. |
-| **X19** take the IPC baseline | `net-latency-tools` is public domain and measures round-trip directly (G154). **Moved here: a baseline taken after the build and the defect work has already lost what it was supposed to measure.** Feed it to CI so drift is visible. |
+| **X19** take the IPC baseline -- **part 1 done** (G194) | Null RPC, 4 KB in-line and port-set receive measured in-kernel under K46, recorded in `notes/docs/ipc-baseline.md`. Out-of-line memory, the hash lookup, KVM figures and the network side remain. |
 | **R35** import MK84's 128 manual pages | 15,006 lines, CMU permissive (G172), covering the entire external memory-manager protocol and port interface. The tree has one `.man` file. Costs a copy; gives every later argument a citable reference. |
 | **R7**, **R27**, **R12** licence, `copyright.osf`, principles | Settled by G66; write them down before the tree grows. |
 

@@ -22,6 +22,9 @@ extern const char	*unit_test_zone(void);
 extern const char	*unit_test_kmem(void);
 extern const char	*unit_test_vm_allocate(void);
 extern const char	*unit_test_port_rights(void);
+extern const char	*unit_test_ipc_null_rpc(void);	/* ipc/ipc_bench.c, X19 */
+extern const char	*unit_test_ipc_inline_4k(void);
+extern const char	*unit_test_ipc_port_set(void);
 
 static struct {
 	const char	*name;
@@ -31,6 +34,9 @@ static struct {
 	{ "kmem",		unit_test_kmem },
 	{ "vm_allocate",	unit_test_vm_allocate },
 	{ "port_rights",	unit_test_port_rights },
+	{ "ipc_null_rpc",	unit_test_ipc_null_rpc },
+	{ "ipc_inline_4k",	unit_test_ipc_inline_4k },
+	{ "ipc_port_set",	unit_test_ipc_port_set },
 };
 
 void

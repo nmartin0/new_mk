@@ -10,7 +10,7 @@ baseline does not have it, **removed** when only the baseline does.
 
 | part | baseline | modified | new | removed |
 |---|---|---|---|---|
-| OSFMK (`osfmk/src/`, without LITES) | `mkunity-master/osfmk/src/` in mach_stuff at `78cab0993cbf` (G149) | 22 | 8 | 0 |
+| OSFMK (`osfmk/src/`, without LITES) | `mkunity-master/osfmk/src/` in mach_stuff at `78cab0993cbf` (G149) | 22 | 9 | 0 |
 | LITES (`osfmk/src/mach_services/servers/lites/`) | its vendor import, "lites: vendor LITES 1.1.u3 in as a server of the tree" | 69 | 3 | 2 |
 
 ## OSFMK
@@ -20,7 +20,7 @@ baseline does not have it, **removed** when only the baseline does.
 | file | commits that changed it |
 |---|---|
 | `bootstrap/elf.c` | 2026-09-15 bootstrap/elf.c: accept read-only PT_LOAD segments<br>2026-09-15 Skip the ELF header segment silently in all three loaders |
-| `mach_kernel/conf/files` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46) |
+| `mach_kernel/conf/files` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46)<br>2026-09-22 kernel: the IPC baseline, measured in-kernel (X19, part 1) |
 | `mach_kernel/ddb/kern_test_defs.h` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46) |
 | `mach_kernel/ddb/kernel_test.c` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46) |
 | `mach_kernel/i386/AT386/bbclock.c` | 2026-09-21 kernel: read the i386 RTC with full years (L48)<br>2026-09-21 kernel: write the RTC year as Apple does, j % 100 |
@@ -42,12 +42,13 @@ baseline does not have it, **removed** when only the baseline does.
 | `mach_services/lib/libmach/mach_init.c` | 2026-09-18 libmach_sa: build from mach_init.o and export mach_init |
 | `mach_services/servers/Makefile` | 2026-09-21 lites: build LITES as part of the tree, and boot it from there |
 
-### New files (8)
+### New files (9)
 
 | file | commits that changed it |
 |---|---|
 | `mach_kernel/conf/AT386/PRODUCTION+TEST` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46) |
-| `mach_kernel/ddb/unit_test.c` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46) |
+| `mach_kernel/ddb/unit_test.c` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46)<br>2026-09-22 kernel: the IPC baseline, measured in-kernel (X19, part 1) |
+| `mach_kernel/ipc/ipc_bench.c` | 2026-09-22 kernel: the IPC baseline, measured in-kernel (X19, part 1) |
 | `mach_kernel/ipc/ipc_port_test.c` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46) |
 | `mach_kernel/kern/zalloc_test.c` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46) |
 | `mach_kernel/vm/vm_kern_test.c` | 2026-09-22 kernel: unit tests on OSF's own KERNEL_TEST framework (K46) |
