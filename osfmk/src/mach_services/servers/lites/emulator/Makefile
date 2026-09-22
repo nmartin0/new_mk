@@ -39,7 +39,9 @@
 #
 
 target_cpu	?= ${MACHINE}
-VPATH		= ${target_cpu}:extra:programs:../server:${EXPORTBASE}/lites/server:${EXPORTBASE}/lites
+# VPATH carries the INCFLAGS directories too, in the same order, so that
+# make finds each header by the name md recorded for it (Q9).
+VPATH		= ${target_cpu}:extra:programs:../server:${LITES_TOP}include:${EXPORTBASE}/lites/server:${EXPORTBASE}/lites
 
 # EXPLIB_SUBDIRS	= libsyscall
 
@@ -54,6 +56,16 @@ NO_STRIP	=
 
 LITES_TOP	= ${MAKETOP}mach_services/servers/lites/
 INCFLAGS	= -I${LITES_TOP}emulator -I${LITES_TOP}server -I${LITES_TOP}include
+# md records a header as a dependency only if it was found through an
+# include directory listed before -I- in its command line; headers found
+# through the rest -- every -I the compiler is given -- it treats as
+# standard and writes, at most, as comments. ODE lists each component's
+# own directory there, but LITES's sibling source directories were
+# standard, so no LITES header was ever recorded and editing one rebuilt
+# nothing (Q9). MDINCFLAGS is ODE's hook for adding directories there;
+# _MDFLAGS_ expands it with GENPATH exactly as it does INCFLAGS, and a
+# directory in both lists stays current. Exports stay standard.
+MDINCFLAGS	+= ${INCFLAGS}
 
 # The EXPORTBASE/bsdss directory contains the include files
 # in machine
@@ -317,3 +329,9 @@ emulator_base: xxx_emulator_base.c
 	( LPATH="${_host_LPATH_}"; export LPATH; \
 	${HOST_CC} ${_host_FLAGS_} -o emulator_base.out xxx_emulator_base.c)
 	${MV} emulator_base.out emulator_base
+
+# The dependencies md collected (MDINCFLAGS above); every ODE component
+# includes them this way, and LITES never did (Q9).
+.if exists(depend.mk)
+.include "depend.mk"
+.endif

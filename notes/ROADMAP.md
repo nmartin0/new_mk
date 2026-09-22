@@ -57,7 +57,8 @@ premise the later stages rest on.
 | item | why it is first |
 |---|---|
 | **R30** CI: build matrix, boot, markers | Nothing currently stops a change breaking the boot. Highest-leverage item in the repository, and the only defence against the scope risk in **P7**. |
-| **R32** replace `md` with `cc -MMD` | **Moved here from the build stage, and it belongs here.** `md` is the dependency generator; if it is wrong, a rebuild does not reflect the change you just made, and every fix in Stage 1 would be tested against a stale build. That is RULES 4.13 at the level of the build itself. It also removes a 2008 binary and **answers Q9 by construction**. |
+| **R32** ~~replace `md`~~ make ODE's dependency tracking work in LITES -- **done** (G191) | The premise changed on measurement: `md` only collects what the compiler's `-MD` computes, and works in the kernel. LITES had never had header tracking; three makefile changes give it, and `tools/check-deps.sh` proves it. |
+| **R36** ODE's library rules recompile objects on every build | Found under R32: build time, not correctness. |
 | **K46** in-kernel test harness | Modelled on XNU's `xnupost` (G112). **Needs no userland**, so it can land now rather than after the L-series, and CI can run it from the same boot. |
 | **R5** `DEVIATIONS.md` | The pristine baseline is identified: `mkunity-master/osfmk` differs from the tree in exactly the 16 files that are ours (G149). Diff against it and write the reason for each. |
 | **X19** take the IPC baseline | `net-latency-tools` is public domain and measures round-trip directly (G154). **Moved here: a baseline taken after the build and the defect work has already lost what it was supposed to measure.** Feed it to CI so drift is visible. |

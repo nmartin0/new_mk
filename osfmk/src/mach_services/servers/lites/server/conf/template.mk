@@ -29,7 +29,9 @@
 
 
 # ${EXPORTBASE}/lites has the machine link.
-VPATH		= ..:${EXPORTBASE}/lites/server:${EXPORTBASE}/lites
+# VPATH carries the INCFLAGS directories too, in the same order, so that
+# make finds each header by the name md recorded for it (Q9).
+VPATH		= ..:../../include:${EXPORTBASE}/lites/server:${EXPORTBASE}/lites
 
 # We want the LITES version & configuration to be part of this name.
 # Makeconf defined LITES_CONFIG and
@@ -120,6 +122,16 @@ NPROFILING_CFLAGS=${DEFINES} -DGPROF
 # sourcedirs, INCDIRS is not expanded.
 
 INCFLAGS	= -I.. -I../../include
+# md records a header as a dependency only if it was found through an
+# include directory listed before -I- in its command line; headers found
+# through the rest -- every -I the compiler is given -- it treats as
+# standard and writes, at most, as comments. ODE lists each component's
+# own directory there, but LITES's sibling source directories were
+# standard, so no LITES header was ever recorded and editing one rebuilt
+# nothing (Q9). MDINCFLAGS is ODE's hook for adding directories there;
+# _MDFLAGS_ expands it with GENPATH exactly as it does INCFLAGS, and a
+# directory in both lists stays current. Exports stay standard.
+MDINCFLAGS	+= ${INCFLAGS}
 
 # The EXPORTBASE/server directory contains the include files
 # in machine
@@ -403,3 +415,8 @@ printenv:
 	@echo VPATH=${VPATH}
 	@echo INCDIRS=${INCDIRS}
 
+# The dependencies md collected (MDINCFLAGS above); every ODE component
+# includes them this way, and LITES never did (Q9).
+.if exists(depend.mk) && !defined(TOSTAGE)
+.include "depend.mk"
+.endif
