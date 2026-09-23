@@ -245,6 +245,18 @@ worth less than one that shows it, because the next person cannot tell
 which parts to trust. If a clean presentation is wanted, build it
 alongside the record and label it as a reconstruction.
 
+
+**6.8 Deliver a series as a series.** When more than one commit is
+ready, hand over **every patch, numbered in the order it applies**,
+with a script that applies them all in that order and verifies each
+against its recorded tree and message as it lands. One patch is one
+commit: never fold several logical changes together to make a handoff
+shorter, and never hand over a commit carrying more than one change's
+worth of patch. The only patches belonging to one commit are the ones
+that **are** that commit -- a single logical change spanning several
+files is one patch, however many files it touches (5.5). The manifest
+carries a line per patch, and each message is the message that commit
+will keep.
 ---
 
 ## 7. Documents
