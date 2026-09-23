@@ -24,20 +24,21 @@ prompt; `root` has no password.
 
 | path | what it is |
 |---|---|
-| `osfmk7.3/` | verbatim vendor import of OSF MK 7.3. Modified only where necessary and always with justification. |
-| `build/` | everything we write. |
-| `AGENTS.md` | operational rules — read before changing anything. |
-| `HANDOFF.md` | **start here** — current state, next question, and the traps. |
-| `WORKFLOW.md` | how work is done here. |
-| `ENVIRONMENT.md` | toolchain, ODE, MIG, and how to reproduce the build. |
-| `DEBUGGING.md` | how to find out why the kernel misbehaves; read before debugging. |
-| `docs/` | design notes, open decisions, and the current state. |
-| `docs/archive/` | solved investigations, kept for their eliminated hypotheses and instrument traps. |
-| `docs/GIT-HYGIENE.md` | commit and history conventions, and how this history was repaired. |
+| `osfmk/` | verbatim vendor import of OSF MK 7.3. Modified only where necessary and always with justification. |
+| `notes/` | everything we write about the work: rules, state, findings. |
+| `build/` | the build: ODE bootstrap, sandbox, environment, and the scripts that drive them. |
+| `notes/AGENTS.md` | operational rules — read before changing anything. |
+| `notes/HANDOFF.md` | **start here** — current state, next question, and the traps. |
+| `notes/WORKFLOW.md` | how work is done here. |
+| `notes/ENVIRONMENT.md` | toolchain, ODE, MIG, and how to reproduce the build. |
+| `notes/DEBUGGING.md` | how to find out why the kernel misbehaves; read before debugging. |
+| `notes/docs/` | design notes, open decisions, and the current state. |
+| `notes/docs/archive/` | solved investigations, kept for their eliminated hypotheses and instrument traps. |
+| `notes/docs/GIT-HYGIENE.md` | commit and history conventions, and how this history was repaired. |
 | `tools/` | debugging helpers. |
-| `PRINCIPLES.md` | why the decisions are what they are. |
+| `notes/PRINCIPLES.md` | why the decisions are what they are. |
 
-`git diff <vendor-import>..HEAD -- osfmk7.3/` is the complete record of
+`git diff <vendor-import>..HEAD -- osfmk/` is the complete record of
 our deviation from upstream. It is expected to stay small.
 
 ## Prerequisites
@@ -52,7 +53,7 @@ in-tree; ode4linux supplies the two things the OSFMK tree lacks — a make
 binary that builds on a modern Linux host, and `sys.mk`.
 
 `libc6-i386` is needed only to run the prebuilt `migcom` and `config`
-shipped under `osfmk7.3/osfmk/tools/i386/i386_linux/hostbin`. Building
+shipped under `osfmk/tools/i386/i386_linux/hostbin`. Building
 both from their in-tree source is a planned milestone.
 
 ## Build
@@ -64,22 +65,22 @@ sh build/bootstrap-ode.sh      # once: builds ODE make
 ```
 
 `build/env.sh` is derived line by line from
-`osfmk7.3/osfmk/src/osc/Buildconf`, OSF's own ODE configuration, which
+`osfmk/src/osc/Buildconf`, OSF's own ODE configuration, which
 already carries explicit support for an i386 target on a Linux host. The
 single deliberate departure is documented in place.
 
 Current build state, including what compiles and what does not, is
-recorded in `AGENTS.md`.
+recorded in `notes/AGENTS.md`.
 
 ## Licensing
 
-`osfmk7.3/` is OSF Mach Kernel 7.3. Every source file carries OSF's
+`osfmk/` is OSF Mach Kernel 7.3. Every source file carries OSF's
 MIT/X11-style notice granting use, copying, modification and
 distribution for any purpose without fee. Files also carry, variously,
 Carnegie Mellon, Intel, Olivetti and University of Arizona notices —
 all permissive, all preserved as found.
 
-Note that `osfmk7.3/osfmk/src/mach_kernel/conf/copyright.osf` contains a
+Note that `osfmk/src/mach_kernel/conf/copyright.osf` contains a
 restrictive academic-use template. It is **not applied to any source
 file**; 1,272 kernel sources carry the permissive notice and none carry
 the restrictive one. Do not be misled by it.
