@@ -137,6 +137,21 @@ over-infer. This is as important as saying what it does.
 **3.9 Source changes carry their reasoning in the source**, as a
 comment at the site, when the reason is not obvious from the diff.
 
+
+**3.10 Before handing off a patch, check its chain of precedent -- a
+hard rule.** Every change, in code and in form, is checked against
+three sources before it is packaged, and follows the canonical form
+they establish: (1) the file's own lineage, walked **in order** and
+recorded with a row for each position -- MkLinux, whose `osfmk/` ours
+is a copy of, the later OSFMK snapshots, OSFMK 6.1, the CMU Machs, the
+UK Machs, OpenMach, xMach, Rhapsody, then XNU; `notes/SOURCES.md` says
+where each lives and what it covers, and a tree that has nothing to
+say is recorded as such, because an absence dates a change and a blank
+only shows that nobody looked; (2) this tree's own conventions --
+these rules, `WORKFLOW.md`, `AGENTS.md`, and how the tree already
+solved the same kind of problem; (3) comparable systems, quoted, as
+3.7 asks. Where no precedent exists, the commit says so. The handoff
+reports what the walk found, including the empty rows.
 ---
 
 ## 4. Proving a change is right
