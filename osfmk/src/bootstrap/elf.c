@@ -76,26 +76,46 @@ elf_load(struct file *fp, objfmt_t ofmt, void *hdr)
     for (i = 0, ph = phdr; i < ehdr->e_phnum; i++, ph++) {
 	switch ((int)ph->p_type) {
 	case PT_LOAD:
-	    if (ph->p_flags == (PF_R | PF_X)) {
-		lp->text_start = trunc_page(ph->p_vaddr);
-		lp->text_size =
-		    (vm_size_t)ph->p_vaddr + ph->p_filesz - lp->text_start;
-		lp->text_offset = trunc_page(ph->p_offset);
-	    } else if (ph->p_flags == (PF_R | PF_W | PF_X) ||
-		       ph->p_flags == (PF_R | PF_W)) {
-		lp->data_start = trunc_page(ph->p_vaddr);
-		lp->data_size =
-		    (vm_size_t) ph->p_vaddr + ph->p_filesz - lp->data_start;
-		lp->bss_size = ph->p_memsz - ph->p_filesz;
-		lp->data_offset = trunc_page(ph->p_offset);
-	    } else {
-#ifndef ppc
-		    /* mklinux/ppc has a read-only section which is ignored */
-		BOOTSTRAP_IO_LOCK();
-		printf("ELF: Unknown program header flags 0x%x\n",
-		       (int)ph->p_flags);
-		BOOTSTRAP_IO_UNLOCK();
-#endif /* ppc */
+	    /*
+	     * AI-ONLY NOTE: classify by flag bits, not by exact equality.
+	     *
+	     * The arms matched p_flags exactly, so a read-only PT_LOAD --
+	     * .rodata, and the ELF header segment, both of which a modern
+	     * linker emits and a 1995 one did not -- matched neither, drew
+	     * only the "Unknown program header flags" message below, and was
+	     * never mapped. The load then failed as "unloadable file format".
+	     *
+	     * struct loader_info models two regions, text and data, so a
+	     * third cannot be represented. It need not be: text and .rodata
+	     * are contiguous in virtual address and file offset once page
+	     * rounded, so extending text to cover .rodata maps both with one
+	     * mapping and no change to the structure.
+	     *
+	     * A read-only segment below the entry point is the ELF header
+	     * segment; mapping it would move text_start backwards and break
+	     * the offset arithmetic in load.c, so it is skipped silently.
+	     *
+	     * Testing bits is what src/stand/AT386/boot/lib/elf.c and Utah
+	     * Mach 4, OpenMach and xMach all do; see the note in
+	     * kern/bootstrap.c.
+	     */
+	    if (ph->p_flags & PF_W) {
+	        lp->data_start = trunc_page(ph->p_vaddr);
+	        lp->data_size =
+	            (vm_size_t) ph->p_vaddr + ph->p_filesz - lp->data_start;
+	        lp->bss_size = ph->p_memsz - ph->p_filesz;
+	        lp->data_offset = trunc_page(ph->p_offset);
+	    } else if (ph->p_flags & PF_X) {
+	        lp->text_start = trunc_page(ph->p_vaddr);
+	        lp->text_size =
+	            (vm_size_t)ph->p_vaddr + ph->p_filesz - lp->text_start;
+	        lp->text_offset = trunc_page(ph->p_offset);
+	    } else if ((vm_offset_t) ph->p_vaddr > lp->entry_1) {
+	        vm_offset_t ro_end =
+	            (vm_offset_t) ph->p_vaddr + ph->p_filesz;
+
+	        if (ro_end > lp->text_start + lp->text_size)
+	            lp->text_size = ro_end - lp->text_start;
 	    }
 	    break;
 	case PT_INTERP:
