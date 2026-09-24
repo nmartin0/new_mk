@@ -322,29 +322,51 @@ do_bootstrap_compat(void)
 		printf("Loop\n");
 		switch ((int)ph->p_type) {
 		case PT_LOAD:
-			if (ph->p_flags == (PF_R | PF_X)) {
-				printf("Found text region\n");
-				regions[boot_region_count].prot = VM_PROT_READ|VM_PROT_EXECUTE;
-				regions[boot_region_count].addr = trunc_page(ph->p_vaddr);
-				regions[boot_region_count].size = round_page(ph->p_filesz);
-				regions[boot_region_count].offset = trunc_page(ph->p_offset);
-				regions[boot_region_count].mapped = TRUE;
-			}
-			else if (ph->p_flags == (PF_R | PF_W)) {
+			/*
+			 * AI-ONLY NOTE: classify by flag bits, not by exact equality.
+			 *
+			 * The arms here matched p_flags against exactly (PF_R|PF_X) and
+			 * exactly (PF_R|PF_W). A 1995 toolchain emitted only those two.
+			 * A modern linker also emits read-only segments -- one for the
+			 * ELF headers, one for .rodata -- which matched neither arm and
+			 * were never mapped, so the task faulted on its own constants.
+			 * A read-write-execute segment matched neither either, and was
+			 * dropped with only a message.
+			 *
+			 * Testing bits is what this tree's third ELF loader already
+			 * does, in src/stand/AT386/boot/lib/elf.c, and what Utah Mach 4,
+			 * OpenMach and xMach do in libmach/exec/elf.c.
+			 *
+			 * A read-only segment below the entry point is the ELF header
+			 * segment. The running program does not need it, and mapping it
+			 * would move the text region backwards, so it is skipped without
+			 * a message: it is expected in every modern binary, not an error.
+			 */
+			if (!(ph->p_flags & (PF_W | PF_X)) &&
+			    ph->p_vaddr <= ehdr->e_entry)
+				continue;
+
+			regions[boot_region_count].prot = VM_PROT_READ
+			    | ((ph->p_flags & PF_W) ? VM_PROT_WRITE : 0)
+			    | ((ph->p_flags & PF_X) ? VM_PROT_EXECUTE : 0);
+			regions[boot_region_count].addr = trunc_page(ph->p_vaddr);
+			regions[boot_region_count].offset = trunc_page(ph->p_offset);
+			regions[boot_region_count].mapped = TRUE;
+
+			if (ph->p_flags & PF_W) {
 				printf("Found data region\n");
-				regions[boot_region_count].prot = VM_PROT_READ|VM_PROT_WRITE;
-				regions[boot_region_count].addr = trunc_page(ph->p_vaddr);
 				regions[boot_region_count].size = round_page(ph->p_memsz);
-				regions[boot_region_count].offset = trunc_page(ph->p_offset);
-				regions[boot_region_count].mapped = TRUE;
 				bzero((char *) (boot_start+ph->p_offset+ph->p_filesz),
 					ph->p_memsz - ph->p_filesz);
 				bss_start = ph->p_vaddr + ph->p_filesz;
 				bss_size = ph->p_memsz - ph->p_filesz;
 			}
 			else {
-				printf("Found PT_LOAD region with unknown flags\n");
-				continue;
+				if (ph->p_flags & PF_X)
+					printf("Found text region\n");
+				else
+					printf("Found read-only region\n");
+				regions[boot_region_count].size = round_page(ph->p_filesz);
 			}
 
 			boot_region_count++;
@@ -533,29 +555,51 @@ exec_load(vm_offset_t start, vm_size_t size)
 		printf("Loop\n");
 		switch ((int)ph->p_type) {
 		case PT_LOAD:
-			if (ph->p_flags == (PF_R | PF_X)) {
-				printf("Found text region\n");
-				regions[boot_region_count].prot = VM_PROT_READ|VM_PROT_EXECUTE;
-				regions[boot_region_count].addr = trunc_page(ph->p_vaddr);
-				regions[boot_region_count].size = round_page(ph->p_filesz);
-				regions[boot_region_count].offset = trunc_page(ph->p_offset);
-				regions[boot_region_count].mapped = TRUE;
-			}
-			else if (ph->p_flags == (PF_R | PF_W)) {
+			/*
+			 * AI-ONLY NOTE: classify by flag bits, not by exact equality.
+			 *
+			 * The arms here matched p_flags against exactly (PF_R|PF_X) and
+			 * exactly (PF_R|PF_W). A 1995 toolchain emitted only those two.
+			 * A modern linker also emits read-only segments -- one for the
+			 * ELF headers, one for .rodata -- which matched neither arm and
+			 * were never mapped, so the task faulted on its own constants.
+			 * A read-write-execute segment matched neither either, and was
+			 * dropped with only a message.
+			 *
+			 * Testing bits is what this tree's third ELF loader already
+			 * does, in src/stand/AT386/boot/lib/elf.c, and what Utah Mach 4,
+			 * OpenMach and xMach do in libmach/exec/elf.c.
+			 *
+			 * A read-only segment below the entry point is the ELF header
+			 * segment. The running program does not need it, and mapping it
+			 * would move the text region backwards, so it is skipped without
+			 * a message: it is expected in every modern binary, not an error.
+			 */
+			if (!(ph->p_flags & (PF_W | PF_X)) &&
+			    ph->p_vaddr <= ehdr->e_entry)
+				continue;
+
+			regions[boot_region_count].prot = VM_PROT_READ
+			    | ((ph->p_flags & PF_W) ? VM_PROT_WRITE : 0)
+			    | ((ph->p_flags & PF_X) ? VM_PROT_EXECUTE : 0);
+			regions[boot_region_count].addr = trunc_page(ph->p_vaddr);
+			regions[boot_region_count].offset = trunc_page(ph->p_offset);
+			regions[boot_region_count].mapped = TRUE;
+
+			if (ph->p_flags & PF_W) {
 				printf("Found data region\n");
-				regions[boot_region_count].prot = VM_PROT_READ|VM_PROT_WRITE;
-				regions[boot_region_count].addr = trunc_page(ph->p_vaddr);
 				regions[boot_region_count].size = round_page(ph->p_memsz);
-				regions[boot_region_count].offset = trunc_page(ph->p_offset);
-				regions[boot_region_count].mapped = TRUE;
-				bzero((char *) (start+ph->p_offset+ph->p_filesz),
+				bzero((char *) (boot_start+ph->p_offset+ph->p_filesz),
 					ph->p_memsz - ph->p_filesz);
 				bss_start = ph->p_vaddr + ph->p_filesz;
 				bss_size = ph->p_memsz - ph->p_filesz;
 			}
 			else {
-				printf("Found PT_LOAD region with unknown flags\n");
-				continue;
+				if (ph->p_flags & PF_X)
+					printf("Found text region\n");
+				else
+					printf("Found read-only region\n");
+				regions[boot_region_count].size = round_page(ph->p_filesz);
 			}
 
 			boot_region_count++;
