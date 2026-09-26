@@ -53,29 +53,25 @@ and `libmach_sa` with the build pointed at `osfmk/`.
 
 ## Next
 
-Finish the rebuild to a system that reaches a login prompt -- the
-LITES source fixes, then LITES under ODE, then the Stage 1 bugs and
-the infrastructure. `junk` holds that work and is the reference for
-it; each batch is re-derived under this chain rather than replayed.
+**Phase 1, here: a period-correct OSFMK 7.3 that boots.** Donors are
+positions 1 to 5 only -- 7.3 itself, 6.1, the CMU Machs, Utah Mach 4
+and its descendants, and the contemporaries of 7.3. Position 6, the
+later BSDs, is anachronistic on this branch (D40, `PRECEDENT.md`).
 
-After that, the hardware work, in this order, because each depends on
-the one before:
+What is left, in order: the LITES source fixes; LITES under ODE, as
+library, emulator and server; the Stage 1 bugs; the infrastructure.
+`junk` holds that work and is the reference for it, re-derived under
+this chain rather than replayed.
 
-  PCI      none is built for i386 today: a single busses/pci/pci.c,
-           commented out in conf/AT386/files. Mechanism 1 first,
-           ECAM after.
-  ACPI     RSDP, RSDT, MADT, FADT, HPET, MCFG. No Mach tree and no
-           contemporary BSD has any of it; later BSDs and ACPICA do.
-  APIC/SMP driven by the MADT rather than the MP tables. Measured on
-           QEMU q35 with -smp 4: the MADT lists all four processors
-           and one I/O APIC, where the legacy MP table listed only
-           the boot processor.
-  AHCI     so a q35 machine has a disk.
-  timers,  HPET or the local APIC timer where there is no 8254;
-  console  framebuffer or serial.
+Done means a login prompt on QEMU `pc` from a disk the tree builds,
+`tools/ci-boot.sh` passing its five checks, and every deviation
+annotated at its site and listed in `DEVIATIONS.md`. The tree is
+tagged there.
 
-Target: QEMU i386, BIOS boot, machine `pc` while the IDE driver is
-the disk path, then `q35` as the modern target. No UEFI.
+**Phase 2 branches from that tag**: PCI, a `bus_space` shim, ACPI,
+APIC and SMP from the MADT, AHCI, then timers and console, on QEMU
+`q35`. `ROADMAP.md` records the donor for each and the date it was
+measured from the tree, so none of that research is repeated.
 
 ## Setting up from nothing
 
