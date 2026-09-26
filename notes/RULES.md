@@ -138,20 +138,32 @@ over-infer. This is as important as saying what it does.
 comment at the site, when the reason is not obvious from the diff.
 
 
-**3.10 Before handing off a patch, check its chain of precedent -- a
-hard rule.** Every change, in code and in form, is checked against
-three sources before it is packaged, and follows the canonical form
-they establish: (1) the file's own lineage, walked **in order** and
-recorded with a row for each position -- MkLinux, whose `osfmk/` ours
-is a copy of, the later OSFMK snapshots, OSFMK 6.1, the CMU Machs, the
-UK Machs, OpenMach, xMach, Rhapsody, then XNU; `notes/SOURCES.md` says
-where each lives and what it covers, and a tree that has nothing to
-say is recorded as such, because an absence dates a change and a blank
-only shows that nobody looked; (2) this tree's own conventions --
-these rules, `WORKFLOW.md`, `AGENTS.md`, and how the tree already
-solved the same kind of problem; (3) comparable systems, quoted, as
-3.7 asks. Where no precedent exists, the commit says so. The handoff
-reports what the walk found, including the empty rows.
+**3.10 Before handing off a patch, walk the chain of precedent -- a
+hard rule.** Every change, in code and in form, is checked against the
+chain in `notes/PRECEDENT.md`, **in order**, before it is packaged,
+and follows the canonical form it establishes: (1) OSFMK 7.3 itself,
+every port it carries, because a spelling this tree already uses beats
+a borrowed one; (2) OSFMK 6.1; (3) the CMU Machs; (4) Utah Mach 4,
+OpenMach and xMach; (5) the contemporaries of 7.3 -- NetBSD 1.3,
+FreeBSD 2.2.8, OpenBSD as of 1998-05-18; (6) later BSDs in historical
+order, stopping at the earliest release that has the thing; (7)
+Rhapsody and XNU, read to learn what a thing must do and why, never
+for a line and never as the origin of one; (8) ours, last, and only
+when the rest have nothing.
+
+`tools/sweep.sh` walks positions 1 to 5 and prints a line per tree
+whether or not it matches. The result goes in the handoff, including
+the empty lines, because an absence is a finding only when every tree
+was looked at -- and a sweep proves only what one pattern found, so
+the spellings tried are named too.
+
+A citation names the tree **and** the release: not "NetBSD does it
+this way" but "NetBSD 1.3, `sys/dev/pci/pci.c`". A claim is written
+only after the file it describes has been read in the session that
+writes it. Copying is allowed from positions 1 to 6 where the licence
+on that file permits, checked per file and recorded with the notice it
+arrived with. Anything from outside the chain is ours, labelled as
+ours, with the alternatives given for the maintainer to decide.
 ---
 
 ## 4. Proving a change is right
