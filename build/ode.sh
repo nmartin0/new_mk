@@ -9,7 +9,7 @@
 # Everything after the script name is passed to build(1) untouched.
 #
 # This is a thin wrapper, not a build system. build(1) reads
-# osfmk7.3/osfmk/src/osc/Buildconf and derives the whole environment
+# osfmk/src/osc/Buildconf and derives the whole environment
 # itself; all this does is put the tools on PATH, change to the sandbox
 # source directory, and name the sandbox rc file.
 #
@@ -31,7 +31,7 @@
 #
 # WHY ODE IS NOT PREPENDED TO THE CALLER'S PATH
 #
-# osfmk7.3/set_ode_path.sh documents the rule: ODE's tools belong early
+# build/set_ode_path.sh documents the rule: ODE's tools belong early
 # in PATH only inside a workon shell, and after the system tools
 # otherwise, so that a plain `make` does not silently become ODE make.
 # Since we do not use workon, PATH is set for this script's own
@@ -51,7 +51,7 @@ fi
 
 REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || REPO_ROOT=$(pwd)
 BIN="${MK_BUILD}/ode-sandbox/tools/at386_linux/bin"
-SRC="${REPO_ROOT}/osfmk7.3/osfmk/src"
+SRC="${REPO_ROOT}/osfmk/src"
 RC="${MK_BUILD}/sandboxrc"
 
 [ -x "${BIN}/build" ] || {

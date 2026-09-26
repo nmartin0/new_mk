@@ -6,7 +6,7 @@
 #
 # Point OSFMK_TOOLS at the osfmk directory (the one containing tools/).
 # build-lites.sh sets it; set it yourself if invoking this directly.
-REAL=${OSFMK_MIG:-${OSFMK_TOOLS:?set OSFMK_TOOLS to .../osfmk7.3/osfmk}/tools/i386/i386_linux/hostbin/mig}
+REAL=${OSFMK_MIG:-${OSFMK_TOOLS:?set OSFMK_TOOLS to .../osfmk}/tools/i386/i386_linux/hostbin/mig}
 [ -x "$REAL" ] || { echo "mig-shim: not executable: $REAL" >&2; exit 1; }
 args=""
 while [ $# -gt 0 ]; do

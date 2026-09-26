@@ -9,7 +9,7 @@
 # directory outside the working tree. The repository stays clean enough
 # that `git status` is meaningful after a full build.
 #
-# Every target value here is taken from osfmk7.3/osfmk/src/osc/Buildconf,
+# Every target value here is taken from osfmk/src/osc/Buildconf,
 # which is OSF's own ODE build configuration and which already carries
 # explicit support for an i386 target on a Linux host. Where a value
 # differs from Buildconf the reason is stated. Do not invent settings
@@ -31,7 +31,7 @@ if [ -z "${REPO_ROOT}" ]; then
 	REPO_ROOT=$(git rev-parse --show-toplevel 2>/dev/null) || REPO_ROOT=$(pwd)
 fi
 export REPO_ROOT
-export SOURCE_BASE="${REPO_ROOT}/osfmk7.3/osfmk/src"
+export SOURCE_BASE="${REPO_ROOT}/osfmk/src"
 
 case "${MK_BUILD}" in
 "${REPO_ROOT}"|"${REPO_ROOT}"/*)
@@ -99,6 +99,6 @@ export MACH3_INCDIRS="${INCDIRS}"
 # Linux host with 32-bit glibc present (libc6-i386). Source for both is
 # in-tree; building them from source is a later milestone so the
 # toolchain is reproducible on any host, including a future Mach one.
-export HOSTBIN="${REPO_ROOT}/osfmk7.3/osfmk/tools/i386/i386_linux/hostbin"
+export HOSTBIN="${REPO_ROOT}/osfmk/tools/i386/i386_linux/hostbin"
 export MIGCOM="${HOSTBIN}/migcom"
 export PATH="${MK_BUILD}/ode:${HOSTBIN}:${PATH}"

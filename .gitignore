@@ -1,1 +1,13 @@
 /osfmk7.3/
+
+# Build output lives outside the tree, under $MK_BUILD. These six are
+# the paths build/mksandbox.sh creates inside the vendor tree: two
+# symlinks into $MK_BUILD, three symlinks into ode4linux's makedefs,
+# and the generated Buildconf.local. The build writes through them,
+# so nothing it produces is ever committed.
+/osfmk/obj
+/osfmk/export/at386
+/osfmk/src/makedefs/sys.mk
+/osfmk/src/makedefs/osf.man.mk
+/osfmk/src/makedefs/osf.doc.mk
+/osfmk/rc_files/osc/Buildconf.local
