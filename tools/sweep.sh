@@ -42,7 +42,7 @@ HERE=$(cd "$(dirname "$0")/.." && pwd)
 # position | label | path | subdirectory searched
 trees="
 1|OSFMK 7.3 (this tree)|$HERE|osfmk/src
-2|OSFMK 6.1|$REFS/osfmk6_1|kernel/src
+2|OSFMK 6.1|$REFS/osfmk6_1|
 3|CMU MK83|$REFS/machmk83|
 3|CMU MK42|$REFS/mach-mk42|
 3|CMU MK74|$REFS/mach-mk74|
@@ -77,9 +77,9 @@ while IFS='|' read -r pos label path sub; do
 	fi
 
 	if [ -n "$glob" ]; then
-		hits=$(grep -rlE --include="$glob" -- "$pattern" "$where" 2>/dev/null | head -40)
+		hits=$(grep -rlE --exclude-dir=.git --include="$glob" -- "$pattern" "$where" 2>/dev/null | head -40)
 	else
-		hits=$(grep -rlE -- "$pattern" "$where" 2>/dev/null | head -40)
+		hits=$(grep -rlE --exclude-dir=.git -- "$pattern" "$where" 2>/dev/null | head -40)
 	fi
 
 	n=$(printf '%s' "$hits" | grep -c . || true)
