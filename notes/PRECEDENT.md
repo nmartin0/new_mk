@@ -26,6 +26,23 @@ it is not the release tarball, and a citation says so: "OpenBSD as of
 is cloned, 247,392 commits back to 1995-10-18, so any other date is
 one checkout away.
 
+## Positions 1 to 5 on this branch
+
+This branch finishes a period-correct OSFMK 7.3: a tree whose sources
+are what OSF and its contemporaries wrote, with our changes visible as
+a short annotated list. **Position 6, the later BSDs, is anachronistic
+here and may not be used.** ACPI, AHCI, HPET and the rest are phase 2,
+on a branch taken from the tag this one ends at; `ROADMAP.md` records
+the donors and their dates so that work starts from evidence rather
+than from a search repeated.
+
+What is unavoidable is not a feature: an assembler that rejects
+`movl %ss,%ax`, a compiler that needs `volatile` on a hardware
+register, a linker that emits read-only program segments. Those are
+the cost of building 1998 source with a 2026 toolchain. Each is
+annotated where it sits and listed in `DEVIATIONS.md`, and none of
+them adds a capability the original did not have.
+
 ## What may be copied
 
 Positions 1 to 6 may be transplanted **where the licence on the file
@@ -70,6 +87,12 @@ them. `tools/sweep.sh` does the walk and prints a line per tree.
 all of which have had PCI for years: they write `0x0cf8`, and NetBSD
 calls it `PCI_MODE1_ADDRESS_REG`. Sweep for the concept in several
 spellings, and say which spellings were tried.
+
+It fails the other way too. `snames` reports hits in NetBSD 1.3,
+FreeBSD 2.2.8 and OpenBSD, none of which has that server: the matches
+are `classnames` and `syscallnames`. A pattern too narrow invents an
+absence; a pattern too loose invents a presence. Read the hits before
+reporting them.
 
 ## What is ours
 
